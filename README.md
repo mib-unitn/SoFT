@@ -38,3 +38,11 @@ Clone the repository and install the required dependencies:
 
 ```sh
 placeholder
+
+```
+
+## Usage
+
+```sh
+
+```
