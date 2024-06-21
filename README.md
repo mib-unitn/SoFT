@@ -1,7 +1,5 @@
 # HelioTrak: A Feature Tracking Suite for Solar Physics
 
-## Introduction
-
 Small-scale magnetic elements are vital in the energetic balance of the Sun’s atmosphere. These structures cover the entire solar surface and understanding their dynamics can address longstanding questions such as coronal heating and solar wind acceleration.
 
 While existing tracking codes are accessible, they often use outdated or licensed programming languages. **HelioTrak** is a novel feature tracking routine built in Python, designed for reliable detection and fast associations.
