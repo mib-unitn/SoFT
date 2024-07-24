@@ -93,14 +93,14 @@ def housekeeping(datapath: str) -> None:
 
 
 
-def img_pre_pos(img: numpy.ndarray, l_thr: int) -> numpy.ndarray:
+def img_pre_pos(img: numpy.ndarray, l_thr: float) -> numpy.ndarray:
     img_pos = img.copy()
     img_pos[img_pos < 0] = 0
     img_pos = numpy.array(img_pos, dtype=numpy.float64)
     img_pos[img_pos < l_thr] = 0
     return img_pos
 
-def img_pre_neg(img: numpy.ndarray, l_thr: int) -> numpy.ndarray:
+def img_pre_neg(img: numpy.ndarray, l_thr: float) -> numpy.ndarray:
     img_neg = img.copy()
     img_neg = -1*numpy.array(img_neg, dtype=numpy.float64)
     img_neg[img_neg < 0] = 0
@@ -134,7 +134,7 @@ def watershed_routine(img: numpy.ndarray, min_dist: int, separation:bool = False
 ###################################
 
 
-def detection(img: numpy.ndarray, l_thr: int, min_distance:int,sign:bool="both", separation:bool=False) -> Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:
+def detection(img: numpy.ndarray, l_thr: float, min_distance:int,sign:bool="both", separation:bool=False) -> Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:
     
     """
     Detects features in an image using a threshold and watershed algorithm based on the specified sign of features.
@@ -799,7 +799,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
 ##### WORKFLOW FUNCTION ###########
 ###################################
 
-def track_all(datapath: str, cores: int, min_distance: int, l_thr: int, min_size: int, dx: float, dt: float, sign: str, separation: int) -> None:
+def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: bool) -> None:
 
     """
     Executes a pipeline for feature detection, identification, association, tabulation, and data storage based on astronomical FITS files.
@@ -813,7 +813,7 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: int, min_size
     - dx (float): Pixel size in the x-direction (spatial resolution) for velocity computation.
     - dt (float): Time interval between frames (temporal resolution) for velocity computation.
     - sign (str): Sign convention for feature detection ('positive', 'negative', or 'both').
-    - separation (int): Separation threshold for feature detection.
+    - separation (bool): When true, it returns the separation lines of the watershed algorithm further separating features.
 
     Returns:
     - None: Outputs are saved as FITS files and a JSON file containing tabulated data.
@@ -828,8 +828,7 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: int, min_size
       association of features across frames, tabulation of feature properties (such as position, area, and flux), and
       saving the resulting tabulated data as a JSON file.
     
-    PSA: This function has been written with the aid of AI. While every effort has been made to ensure accuracy and reliability,
-      please verify results and exercise caution in critical applications.
+    PSA: This docstring has been written with the aid of AI.
     """
 
     # Load the data
