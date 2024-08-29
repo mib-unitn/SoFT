@@ -27,5 +27,6 @@ dt = 45. #seconds
 min_dist = 3 #pixels
 sign ="both" # Can be "positive", "negative" or "both
 separation = True # If True, the watershed algorithm will return the watershed line
+verbose = False
 
-ht.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation)
+ht.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation, verbose)
