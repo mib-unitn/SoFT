@@ -8,7 +8,7 @@ import glob
 from numba import jit
 import matplotlib.pyplot
 import matplotlib.animation
-from tqdm import tqdm
+import tqdm 
 import multiprocessing
 import time
 from multiprocessing import Pool
@@ -134,7 +134,7 @@ def watershed_routine(img: numpy.ndarray, min_dist: int, separation:bool = False
 ###################################
 
 
-def detection(img: numpy.ndarray, l_thr: float, min_distance:int,sign:bool="both", separation:bool=False) -> Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:
+def detection(img: numpy.ndarray, l_thr: float, min_distance:int,sign:str="both", separation:bool=False, verbose:bool=False) -> Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:
     
     """
     Detects features in an image using a threshold and watershed algorithm based on the specified sign of features.
@@ -177,7 +177,8 @@ def detection(img: numpy.ndarray, l_thr: float, min_distance:int,sign:bool="both
         labels_neg,_ = watershed_routine(img_neg, min_distance, separation)
         labels_neg = -1*labels_neg
         labels = labels_pos + labels_neg
-        print(f"Number of clumps detected: {len(numpy.unique(labels))-1}")
+        if verbose:
+            print(f"Number of clumps detected: {len(numpy.unique(labels))-1}")
         return labels
     elif sign == "pos":
         img_pos = img_pre_pos(img, l_thr)
@@ -191,7 +192,7 @@ def detection(img: numpy.ndarray, l_thr: float, min_distance:int,sign:bool="both
         raise ValueError('sign must be "both", "pos" or "neg"')
 
 
-def identification(labels: numpy.ndarray, min_size: int) -> numpy.ndarray:
+def identification(labels: numpy.ndarray, min_size: int, verbose:bool = False) -> numpy.ndarray:
 
     """
     Identifies and filters clumps in the input label array based on a minimum size threshold.
@@ -221,26 +222,28 @@ def identification(labels: numpy.ndarray, min_size: int) -> numpy.ndarray:
     count = 0
     uid = numpy.unique(labels)
     original_number = len(uid)
+    if verbose:
+        print(f"Number of clumps detected: {original_number-1}")
 
-    print(f"Number of clumps detected: {original_number-1}")
-
-    for k in uid:
+    for k in tqdm.tqdm(uid, leave=False):
         sz = numpy.where(labels == k)
         if len(sz[0]) < min_size:
             labels = numpy.where(labels == k, 0, labels)
             count+=1
 
     num = original_number - count
-    print(f"Number of clumps surviving the identification process: {num}")
+    if verbose:
+        print(f"Number of clumps surviving the identification process: {num}")
     if num == 0:
         raise ValueError("No clumps survived the identification process")
-    else: # In future versions, there should be a "verbose" option to print the number of clumps removed (num)
-        print(f"Number of clumps surviving the identification process: {num}")
+    else:
+        if verbose:
+            print(f"Number of clumps surviving the identification process: {num}")
         pass
 
     return labels
 
-def process_image(datapath: str, data: str, l_thr: int, min_distance: int, sign:bool="both", separation:bool=True, min_size:int=4) -> None:
+def process_image(datapath: str, data: str, l_thr: float, min_distance: int, sign:str="both", separation:bool=True, min_size:int=4, verbose:bool=False) -> None:
 
     """
     Processes an astronomical image by detecting and identifying clumps within it, and saves the results.
@@ -272,14 +275,14 @@ def process_image(datapath: str, data: str, l_thr: int, min_distance: int, sign:
     """
 
     image = astropy.io.fits.getdata(data, memmap=False)
-    labels = detection(image, l_thr, min_distance, sign=sign, separation=separation)
+    labels = detection(image, l_thr, min_distance, sign=sign, separation=separation, verbose=verbose)
     astropy.io.fits.writeto(datapath+f"01-mask/{data.split(os.sep)[-1]}", labels, overwrite=True)
-    labels = identification(labels, min_size)
+    labels = identification(labels, min_size, verbose=verbose)
     astropy.io.fits.writeto(datapath+f"02-id/{data.split(os.sep)[-1]}", labels, overwrite=True)
 
 
 
-def unique_id(id_data: str, datapath: str) -> None:
+def unique_id(id_data: str, datapath: str, verbose:bool=False) -> None:
 
     """
     Assigns unique IDs to clumps in a list of FITS image files and saves the modified files.
@@ -302,7 +305,7 @@ def unique_id(id_data: str, datapath: str) -> None:
 
     u_id_p = 1
     u_id_n = -1
-    for filename in id_data:
+    for filename in tqdm.tqdm(id_data):
         img_n0 = astropy.io.fits.getdata(filename, memmap=False)
         # Extract unique non-zero values
         ids = numpy.unique(img_n0[img_n0 != 0])
@@ -317,7 +320,8 @@ def unique_id(id_data: str, datapath: str) -> None:
             u_id_n -= 1
         # Write the modified data back to the file
         astropy.io.fits.writeto(os.path.join(datapath, "02-id", os.path.basename(filename)), img_n0, overwrite=True)
-    print(f"Total number of unique IDs: {u_id_p+abs(u_id_n)-1}")
+    if verbose:
+        print(f"Total number of unique IDs: {u_id_p+abs(u_id_n)-1}")
 
 
 
@@ -352,7 +356,7 @@ def array_row_intersection(a: numpy.ndarray,b:numpy.ndarray) -> numpy.ndarray:
     tmp=numpy.prod(numpy.swapaxes(a[:,:,None],1,2)==b,axis=2)
     return a[numpy.sum(numpy.cumsum(tmp,axis=0)*tmp==1,axis=1).astype(bool)]
 
-def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datapath: str) -> None:
+def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datapath: str, verbose:bool=False) -> None:
 
     """
     Performs parallel forward and backward matching of unique IDs between two FITS files.
@@ -398,7 +402,7 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     # create two empty 1D arrays to store the forward_1 and forward_2 matches
     forward_matches_1 = numpy.empty(0)
     forward_matches_2 = numpy.empty(0)
-    for id_1 in unique_id_1:
+    for id_1 in tqdm.tqdm(unique_id_1, leave=False, desc="Forward matching"):
         wh1 = numpy.where(file1 == id_1)
         set1 = numpy.stack((wh1[0], wh1[1])).T
         max_intersection_size = 0
@@ -424,7 +428,7 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     unique_id_2 = unique_id_2[unique_id_2 != 0]
     backward_matches_1 = numpy.empty(0)
     backward_matches_2 = numpy.empty(0)
-    for id_2 in unique_id_2:
+    for id_2 in tqdm.tqdm(unique_id_2, leave=False, desc="Backward matching"):
         wh2 = numpy.where(file2 == id_2)
         set2 = numpy.stack((wh2[0], wh2[1])).T
         max_intersection_size = 0
@@ -449,14 +453,14 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     # consider only the matches that are mutual
     mutual_matches_1 = numpy.empty(0)
     mutual_matches_2 = numpy.empty(0)
-    for kk in range(len(forward_matches_1)):
+    for kk in tqdm.tqdm(range(len(forward_matches_1)), leave=False, desc="Mutual matching"):
         if forward_matches_1[kk] in backward_matches_1 and forward_matches_2[kk] in backward_matches_2:
             fwm1 = forward_matches_1[kk]
             fwm2 = forward_matches_2[kk]
             mutual_matches_1 = numpy.append(mutual_matches_1, fwm1)
             mutual_matches_2 = numpy.append(mutual_matches_2, fwm2)
     
-    for idx in range(len(mutual_matches_1)):
+    for idx in tqdm.tqdm(range(len(mutual_matches_1)), leave=False, desc="Replacing"):
         numpy.place(cube2, cube2 == mutual_matches_2[idx], mutual_matches_1[idx])
     
     # append vertically the frames in cube1 and cube2
@@ -468,10 +472,11 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     cube2 = numpy.concatenate((cube1, cube2), axis=0)
 
     astropy.io.fits.writeto(datapath+f"temp{round}/{fname1.split(os.sep)[-1]}", cube2, overwrite=True)
-    print(color.YELLOW + f"Done with {fname1.split(os.sep)[-1]}, {fname2.split(os.sep)[-1]}" + color.END)
+    if verbose:
+        print(color.YELLOW + f"Done with {fname1.split(os.sep)[-1]}, {fname2.split(os.sep)[-1]}" + color.END)
 
 
-def associate(datapath: str) -> None:
+def associate(datapath: str, verbose:bool=False) -> None:
 
     """
     Perform association of FITS files using parallel processing.
@@ -498,7 +503,6 @@ def associate(datapath: str) -> None:
     PSA: This docstring has been written with the assistance of AI.
     """
 
-    print(color.RED + color.BOLD + "Starting association" + color.END)
     number_of_workers = os.cpu_count()
     id_data = sorted(glob.glob(datapath+"02-id/*.fits"))
     round = 0
@@ -513,7 +517,7 @@ def associate(datapath: str) -> None:
         subgroups = subgroups[:-1]
     # parallelize the association by using the multiprocessing module on each subgroup
     print(color.RED + color.BOLD + "Starting the first round of association" + color.END)
-    args = [(subgroup[0], subgroup[1], round, datapath) for subgroup in subgroups]
+    args = [(subgroup[0], subgroup[1], round, datapath, verbose) for subgroup in subgroups]
     pool = multiprocessing.Pool(processes=number_of_workers)
     results = pool.starmap(back_and_forth_matching_PARALLEL, args)
     pool.close()
@@ -536,7 +540,7 @@ def associate(datapath: str) -> None:
             subgroups = subgroups[:-1]
         
         print(color.RED + color.BOLD + f"Starting the {round+1} round of association" + color.END)
-        args = [(subgroup[0], subgroup[1], round, datapath) for subgroup in subgroups]
+        args = [(subgroup[0], subgroup[1], round, datapath, verbose) for subgroup in subgroups]
         pool = multiprocessing.Pool(processes=number_of_workers)
         results = pool.starmap(back_and_forth_matching_PARALLEL, args)
         pool.close()
@@ -557,7 +561,7 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
         asc_img = astropy.io.fits.getdata(file, memmap=False)
         unique_ids = numpy.unique(asc_img)
         df_temp = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame"])
-        for i in unique_ids:
+        for i in tqdm.tqdm(unique_ids, leave=False, desc=f"Frame {j}"):
             if i == 0:
                 continue
             mask = (asc_img == i)
@@ -694,7 +698,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
     img = astropy.io.fits.getdata(filesB[0], memmap=False)
     size=numpy.shape(img)
     x_1, y_1 = numpy.meshgrid(numpy.arange(size[1]), numpy.arange(size[0])) 
-    for j,file in tqdm(enumerate(files), desc="Tabulation"):
+    for j,file in tqdm.tqdm(enumerate(files), desc="Tabulation"):
         src_img = astropy.io.fits.getdata(filesB[j], memmap=False)
         asc_img = astropy.io.fits.getdata(file, memmap=False)
         unique_ids = numpy.unique(asc_img)
@@ -720,7 +724,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
     label_tot = []
     frame_tot = []
 
-    for name, group in tqdm(groups, desc="Merging common labels"):
+    for name, group in tqdm.tqdm(groups, desc="Merging common labels"):
         area_temp = group["Area"].values
         flux_temp = group["Flux"].values
         X_temp = group["X"].values
@@ -769,7 +773,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
     vytot = []
     stdvxtot = []
     stdvytot = []
-    for j in tqdm(range(len(df_final)), desc="Computing velocities"):
+    for j in tqdm.tqdm(range(len(df_final)), desc="Computing velocities"):
         x = df_final["X"].iloc[j]
         y = df_final["Y"].iloc[j]
         x = numpy.array(x)
@@ -799,7 +803,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
 ##### WORKFLOW FUNCTION ###########
 ###################################
 
-def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: bool) -> None:
+def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: int, verbose:bool=False) -> None:
 
     """
     Executes a pipeline for feature detection, identification, association, tabulation, and data storage based on astronomical FITS files.
@@ -813,7 +817,7 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     - dx (float): Pixel size in the x-direction (spatial resolution) for velocity computation.
     - dt (float): Time interval between frames (temporal resolution) for velocity computation.
     - sign (str): Sign convention for feature detection ('positive', 'negative', or 'both').
-    - separation (bool): When true, it returns the separation lines of the watershed algorithm further separating features.
+    - separation (int): Separation threshold for feature detection.
 
     Returns:
     - None: Outputs are saved as FITS files and a JSON file containing tabulated data.
@@ -842,18 +846,17 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     housekeeping(datapath)
     # Start the detection and identification
     print(color.RED + color.BOLD + "Detecting features..." + color.END)
-    print("Don't panic if it looks stuck...")
 
     with Pool(number_of_workers) as p:
-        p.starmap(process_image, [(datapath, img, l_thr, min_distance, sign, separation, min_size) for img in data])
+        p.starmap(process_image, [(datapath, img, l_thr, min_distance, sign, separation, min_size, verbose) for img in data])
     # Assign unique IDs
     print(color.RED + color.BOLD + "Assigning unique IDs..." + color.END)
     id_data = sorted(glob.glob(datapath+"02-id/*.fits"))
-    unique_id(id_data, datapath)
+    unique_id(id_data, datapath, verbose)
     print(color.GREEN + color.BOLD + "Feature detection step ended" + color.END)
     print(color.RED + color.BOLD + "Associating features..." + color.END)
     # Associate the detections
-    associate(datapath)
+    associate(datapath, verbose)
     # delet all temp folders regardless of the files inside
     print(color.RED + color.BOLD + "Cleaning up" + color.END)
     os.system(f"rm -rf {datapath}temp*")
