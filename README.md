@@ -1,4 +1,4 @@
-# HelioTrak: A Feature Tracking Suite for Solar Physics
+# HelioTrak: Detecting and Tracking Features in the Sun's Atmosphere
 
 Small-scale magnetic elements are vital in the energetic balance of the Sun’s atmosphere. These structures cover the entire solar surface and understanding their dynamics can address longstanding questions such as coronal heating and solar wind acceleration.
 
@@ -43,6 +43,4 @@ placeholder
 
 ## Usage
 
-```sh
-
-```
+A usage script is included in the repository to showcase how to use the HelioTrak suite.
