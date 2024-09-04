@@ -940,9 +940,11 @@ def follow_video(stacked_masks, savepath="", filename="follow_video"):
     ani.save(savepath+f'{filename}.mp4', writer='ffmpeg', fps=5)
 
 
-def freq_map(datapath, minlifetime=15):
+def freq_map(datapath, minlifetime=15, flag="x", title=None):
     df = pandas.read_json(datapath+"dataframe.json")
     df = df[df["Lifetime"] > minlifetime]
+    df = df[df["stdVx"] < 10]
+    df = df[df["stdVy"] < 10]
     df.reset_index(drop=True, inplace=True)
     img = astropy.io.fits.getdata(datapath+"00-data/0000.fits")
     cs = astropy.io.fits.getdata(datapath+"03-assoc/0000.fits")
@@ -962,9 +964,15 @@ def freq_map(datapath, minlifetime=15):
         x.append(x_)
         y.append(y_)
         area.append(area_)
-        f, Pxx = scipy.signal.periodogram(numpy.array(df["Vx"].iloc[j]), fs=1/45, nfft=256, detrend="linear", scaling="density", )
-        Pxx = Pxx/numpy.max(Pxx)
-        peaks.append(f[numpy.argmax(Pxx)])
+        if flag=="x":
+            f, Pxx = scipy.signal.periodogram(numpy.array(df["Vx"].iloc[j]), fs=1/45, nfft=256, detrend="linear", scaling="density", )
+            Pxx = Pxx/numpy.max(Pxx)
+            peaks.append(f[numpy.argmax(Pxx)])
+        elif flag=="y":
+            f, Pyy = scipy.signal.periodogram(numpy.array(df["Vy"].iloc[j]), fs=1/45, nfft=256, detrend="linear", scaling="density", )
+            Pyy = Pyy/numpy.max(Pyy)
+            peaks.append(f[numpy.argmax(Pyy)])
+
 
     diameter = numpy.array(numpy.sqrt(numpy.array(area)/numpy.pi)*2).astype(int)
     peaks = numpy.array(peaks)
@@ -978,10 +986,8 @@ def freq_map(datapath, minlifetime=15):
         for j in range(-diameter[i]//2, diameter[i]//2):
             for k in range(-diameter[i]//2, diameter[i]//2):
                 if numpy.sqrt(j**2 + k**2) < diameter[i]//2:
-                    try:
-                        peaks_img[y_+j, x_+k] = peaks[i]
-                    except:
-                        pass
+                    peaks_img[y_+j, x_+k] = peaks[i]
+
 
 
     # smooth the peaks_img so that its all colored 
@@ -992,9 +998,78 @@ def freq_map(datapath, minlifetime=15):
     matplotlib.pyplot.imshow(img, cmap="gray", vmin=-100, vmax=100)
     # replace the values of the peaks_img with 0 to nan to make the background transparent
     peaks_img[peaks_img < 0.0007] = numpy.nan
-
     peaks_img = numpy.array(peaks_img)*1000
 
     matplotlib.pyplot.imshow(peaks_img, cmap="jet", alpha=0.99)
     matplotlib.pyplot.colorbar(label="Frequency (mHz)")
-    matplotlib.pyplot.show()
+    if title != None:
+        matplotlib.pyplot.savefig(f"{title}.png")
+
+    
+
+def amp_map(datapath, minlifetime=15, flag="x", title=None):
+    df = pandas.read_json(datapath+"dataframe.json")
+    df = df[df["Lifetime"] > minlifetime]
+    df = df[df["stdVx"] < 10]
+    df = df[df["stdVy"] < 10]
+    df.reset_index(drop=True, inplace=True)
+    img = astropy.io.fits.getdata(datapath+"00-data/0000.fits")
+    cs = astropy.io.fits.getdata(datapath+"03-assoc/0000.fits")
+    temp_img = numpy.copy(cs)
+    lifetime = numpy.array(df["Lifetime"])
+
+    peaks = []
+    x = []
+    y = []
+    area = []
+
+
+    for j in range(len(df)):
+        x_ = numpy.array(df["X"].iloc[j]).mean()
+        y_ = numpy.array(df["Y"].iloc[j]).mean()
+        vx_ = numpy.array(df["Vx"].iloc[j]).std()
+        vy_ = numpy.array(df["Vy"].iloc[j]).std()
+        area_ = numpy.array(df["Area"].iloc[j]).mean()
+        x.append(x_)
+        y.append(y_)
+        area.append(area_)
+        if flag=="x":
+            peaks.append(vx_)
+        elif flag=="y":
+            peaks.append(vy_)
+
+
+    diameter = numpy.array(numpy.sqrt(numpy.array(area)/numpy.pi)*2).astype(int)
+    peaks = numpy.array(peaks)
+    # keep only values below 10
+
+
+    peaks_img = numpy.zeros_like(temp_img).astype(numpy.float64)
+
+    for i in range(len(peaks)):
+        x_ = int(x[i])
+        y_ = int(y[i])
+        peaks_img[y_, x_] = peaks[i]
+        for j in range(-diameter[i]//2, diameter[i]//2):
+            for k in range(-diameter[i]//2, diameter[i]//2):
+                if numpy.sqrt(j**2 + k**2) < diameter[i]//2:
+                    peaks_img[y_+j, x_+k] = peaks[i]
+
+
+
+    # smooth the peaks_img so that its all colored 
+    from scipy.ndimage import gaussian_filter
+
+    peaks_img = gaussian_filter(peaks_img, sigma=1)
+    peaks_img[peaks_img < 0.001] = numpy.nan
+
+
+    matplotlib.pyplot.figure(figsize=(10, 10))
+    matplotlib.pyplot.imshow(img, cmap="gray", vmin=-100, vmax=100)
+    # replace the values of the peaks_img with 0 to nan to make the background transparent
+
+
+    matplotlib.pyplot.imshow(peaks_img, cmap="jet", alpha=0.99)
+    matplotlib.pyplot.colorbar(label="Amplitude (km/s)")
+    if title != None:
+        matplotlib.pyplot.savefig(f"{title}.png")
