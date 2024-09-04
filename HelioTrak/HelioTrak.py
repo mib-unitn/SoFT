@@ -11,10 +11,8 @@ import matplotlib.animation
 import tqdm 
 import multiprocessing
 import time
-from multiprocessing import Pool
 from typing import Union
 from pathos.multiprocessing import ProcessingPool
-
 
 class color:
    PURPLE = '\033[95m'
@@ -847,7 +845,7 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     # Start the detection and identification
     print(color.RED + color.BOLD + "Detecting features..." + color.END)
 
-    with Pool(number_of_workers) as p:
+    with multiprocessing.Pool(number_of_workers) as p:
         p.starmap(process_image, [(datapath, img, l_thr, min_distance, sign, separation, min_size, verbose) for img in data])
     # Assign unique IDs
     print(color.RED + color.BOLD + "Assigning unique IDs..." + color.END)

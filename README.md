@@ -37,12 +37,31 @@ After association, the physical properties of magnetic structures are estimated 
 Clone the repository and install the required dependencies:
 
 ```sh
-placeholder
-
+git clone https://github.com/mib-unitn/HelioTrak.git
+cd HelioTrak
+pip install .
 ```
 
 ## Usage
 
 ```sh
+import HelioTrak.HelioTrak as ht
 
+#Set the path to the data
+datapath =  #Path to the data
+# Set the number of cores to be used. It will always be selected the minimum between the number of cores available and the number of frames in the data.
+cores = os.cpu_count()
+
+#Set the parameters for the detection and identification
+l_thr =  #Intensity [Gauss]
+m_size =  #pixels
+dx =  #Km
+dt = #seconds
+min_dist = #pixels
+sign = # Can be "positive", "negative" or "both, defines the polarity of the features to be tracked
+separation = # If True, the detection method selected is "fine", if False, the detection method selected is "coarse". Check the paper for more details on the detection methods
+verbose=False #If True, the code will print a more detailed output of the tracking process
+
+
+ht.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation, verbose=False)
 ```
