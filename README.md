@@ -45,7 +45,7 @@ pip install .
 ## Usage
 
 ```sh
-import HelioTrak.HelioTrak as ht
+from HelioTrak import HelioTrak as ht
 
 #Set the path to the data
 datapath =  #Path to the data
