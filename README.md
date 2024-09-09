@@ -69,4 +69,4 @@ st.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation,
 
 
 
-<sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup> Tiny Text</sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub>
+<sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup> M. Berretti wishes to acknowledge that SoFT could also be interpreted as "So' Francesco Totti" and it's totally ok with it.</sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub>
