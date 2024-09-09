@@ -871,6 +871,205 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     print(color.PURPLE + color.BOLD + f"Time elapsed: {end - start} seconds" + color.END)
 
 
+
+###################################
+####### SUNSPOTS WORKFLOW #########
+###################################
+
+
+
+def simple_labels(img: numpy.ndarray) -> numpy.ndarray:
+    # simple labels rather than too exotic segmentation techniques as we don't want to risk the code splitting the sunspots' umbra
+    labels = scipy.ndimage.label(img)
+    return labels
+
+def detection_ss(img: numpy.ndarray, l_thr: int) -> Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:
+    
+    img = numpy.array(img)
+    img_pos = img_pre_pos(img, l_thr)
+    img_neg = img_pre_neg(img, l_thr)
+    labels_pos,_ = simple_labels(img_pos)
+    labels_neg,_ = simple_labels(img_neg)
+    labels_neg = -1*labels_neg
+    labels = labels_pos + labels_neg
+    # print(f"Number of clumps detected: {len(numpy.unique(labels))-1}")
+    return labels
+
+def process_image_ss(datapath: str, data: str, l_thr: int, min_size:int=4) -> None:
+
+    image = astropy.io.fits.getdata(data, memmap=False)
+    labels = detection_ss(image, l_thr)
+    astropy.io.fits.writeto(datapath+f"01-mask/{data.split(os.sep)[-1]}", labels, overwrite=True)
+    labels = identification(labels, min_size=4)
+    astropy.io.fits.writeto(datapath+f"02-id/{data.split(os.sep)[-1]}", labels, overwrite=True)
+
+def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: float, cores: int, minliftime: int = 4) -> pandas.DataFrame:
+    def process_file(j):
+        file = files[j]
+        src_img = astropy.io.fits.getdata(filesB[j], memmap=False)
+        asc_img = astropy.io.fits.getdata(file, memmap=False)
+        alt_img = astropy.io.fits.getdata(filesD[j], memmap=False)
+        unique_ids = numpy.unique(asc_img)
+        df_temp = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V" "frame"])
+        for i in unique_ids:
+            if i == 0:
+                continue
+            mask = (asc_img == i)
+            Bm = src_img * mask
+            LosV_s = alt_img * mask
+            LosV_s[LosV_s == 0] = numpy.nan
+            Area = mask.sum()
+            Flux = Bm.sum() / Area
+            LosV = LosV_s # numpy.nanmean(LosV_s)
+            X = ((mask * x_1) * Bm).sum() / Bm.sum()
+            Y = ((mask * y_1) * Bm).sum() / Bm.sum()
+            temp = pandas.DataFrame([[i, X, Y, Area, Flux, LosV, j]], columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame"])
+            df_temp = pandas.concat([df_temp, temp], ignore_index=False)
+        return df_temp
+
+    df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame"])
+    img = astropy.io.fits.getdata(filesB[0], memmap=False)
+    size = numpy.shape(img)
+    x_1, y_1 = numpy.meshgrid(numpy.arange(size[1]), numpy.arange(size[0]))
+
+    with ProcessingPool(cores) as p:
+        results = list(tqdm(p.imap(process_file, range(len(files))), total=len(files), desc="Tabulation"))
+
+    for result in results:
+        df = pandas.concat([df, result], ignore_index=False)
+
+    # Merge the common labels
+    groups = df.groupby("label")
+
+    area_tot = []
+    flux_tot = []
+    losv_tot = []
+    X_tot = []
+    Y_tot = []
+    label_tot = []
+    frame_tot = []
+
+    for name, group in tqdm(groups, desc="Merging common labels"):
+        area_temp = group["Area"].values
+        flux_temp = group["Flux"].values
+        losv_temp = group["LOS_V"].values
+        X_temp = group["X"].values
+        Y_temp = group["Y"].values
+        label_temp = group["label"].values
+        frame_temp = group["frame"].values
+
+        # Perform some sanity checks
+        if len(area_temp) != len(flux_temp):
+            raise ValueError("area and flux have different lengths")
+        if len(area_temp) != len(losv_temp):
+            raise ValueError("area and losv have different lengths")
+        if len(area_temp) != len(X_temp):
+            raise ValueError("area and X have different lengths")
+        if len(area_temp) != len(Y_temp):
+            raise ValueError("area and Y have different lengths")
+        if len(area_temp) != len(label_temp):
+            raise ValueError("area and label have different lengths")
+        if len(area_temp) != len(frame_temp):
+            raise ValueError("area and frame have different lengths")
+        if len(numpy.unique(label_temp)) > 1:
+            raise ValueError("More than one label in the group")
+        if numpy.any(numpy.diff(frame_temp) != 1):
+            raise ValueError("Frames are not consecutive")
+
+        area_tot.append(area_temp)
+        flux_tot.append(flux_temp)
+        losv_tot.append(losv_temp)
+        X_tot.append(X_temp)
+        Y_tot.append(Y_temp)
+        label_tot.append(label_temp)
+        frame_tot.append(frame_temp)
+
+    df_final = pandas.DataFrame(columns=["label", "Lifetime", "X", "Y", "Area", "Flux", "LOS_V"])
+    df_final["label"] = [x[0] for x in label_tot]
+    df_final["Lifetime"] = [len(x) for x in frame_tot]
+    df_final["X"] = X_tot
+    df_final["Y"] = Y_tot
+    df_final["Area"] = area_tot
+    df_final["Flux"] = flux_tot
+    df_final["LOS_V"] = losv_tot
+    df_final["Frames"] = frame_tot
+    df_final = df_final[df_final["Lifetime"] >= minliftime]
+
+    # Compute the velocities
+    vxtot = []
+    vytot = []
+    stdvxtot = []
+    stdvytot = []
+    for j in tqdm(range(len(df_final)), desc="Computing velocities"):
+        x = df_final["X"].iloc[j]
+        y = df_final["Y"].iloc[j]
+        x = numpy.array(x)
+        y = numpy.array(y)
+        vx = numpy.gradient(x) * dx / dt
+        vy = numpy.gradient(y) * dx / dt
+        vx = vx - numpy.mean(vx)
+        vy = vy - numpy.mean(vy)
+        stdx = numpy.std(vx)
+        stdy = numpy.std(vy)
+        vxtot.append(vx)
+        vytot.append(vy)
+        stdvxtot.append(stdx)
+        stdvytot.append(stdy)
+    df_final["Vx"] = vxtot
+    df_final["Vy"] = vytot
+    df_final["stdVx"] = stdvxtot
+    df_final["stdVy"] = stdvytot
+
+    df_final = df_final.reset_index(drop=True)
+
+    return df_final
+
+
+def track_sunspots(datapath: str, cores: int, l_thr: float, min_size: int, dx: float, dt: float, doppler_path:str=None, verbose:bool=False) -> None:
+
+    # "Perchè il Capitano po' fa tutto"
+    # Load the data
+    data = sorted(glob.glob(datapath+"00-data/*.fits"))
+    # Set the number of workers
+    number_of_workers = numpy.min([len(data), cores])
+    print(color.RED + color.BOLD + f"Number of cores used: {number_of_workers}" + color.END)
+    start = time.time()
+    # Clean up
+    print(color.RED + color.BOLD + "Cleaning up" + color.END)
+    housekeeping(datapath)
+    # Start the detection and identification
+    print(color.RED + color.BOLD + "Detecting features..." + color.END)
+
+    with multiprocessing.Pool(number_of_workers) as p:
+        p.starmap(process_image_ss, [(datapath, img, l_thr, min_size, verbose) for img in data])
+    # Assign unique IDs
+    print(color.RED + color.BOLD + "Assigning unique IDs..." + color.END)
+    id_data = sorted(glob.glob(datapath+"02-id/*.fits"))
+    unique_id(id_data, datapath, verbose)
+    print(color.GREEN + color.BOLD + "Feature detection step ended" + color.END)
+    print(color.RED + color.BOLD + "Associating features..." + color.END)
+    # Associate the detections
+    associate(datapath, verbose)
+    # delet all temp folders regardless of the files inside
+    print(color.RED + color.BOLD + "Cleaning up" + color.END)
+    os.system(f"rm -rf {datapath}temp*")
+    # Start the tabulation
+    print(color.RED + color.BOLD + "Starting tabulation" + color.END)
+    asc_files = sorted(glob.glob(os.path.join(datapath,"03-assoc/*.fits")))
+    src_files = sorted(glob.glob(os.path.join(datapath+"00-data/*.fits")))
+    if doppler_path is not None:
+        doppler_files = sorted(glob.glob(os.path.join(datapath+"00b-doppler/*.fits")))
+        df = tabulation_parallel_ss(asc_files, doppler_files, src_files, dx, dt, cores)
+    else:
+        df = tabulation_parallel(asc_files, src_files, dx, dt, cores)
+    # Save the dataframe
+    df.to_json(os.path.join(datapath+"dataframe.json"))
+    end = time.time()
+    print(color.GREEN + color.BOLD + "Dataframe saved" + color.END)
+    print(color.YELLOW + color.BOLD + f"Number of elements tracked: {len(df)}" + color.END)
+    print(color.PURPLE + color.BOLD + f"Time elapsed: {end - start} seconds" + color.END)
+
+
 ###################################
 ##### UTILITY FUNCTIONS ###########
 ###################################
