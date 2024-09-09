@@ -1,14 +1,14 @@
 from setuptools import setup
 
 setup(
-    name='HelioTrak',
+    name='SoFT',
     version='0.0.1',    
-    description='A Python lib for solar feature tracking',
-    url='https://github.com/mib-unitn/HelioTrak',
+    description='A Python lib for Solar Feature Tracking',
+    url='https://github.com/mib-unitn/SoFT',
     author='Michele Berretti',
     author_email='michele.berretti@unitn.it',
     license='GPL-3.0',
-    packages=['HelioTrak'],
+    packages=['soft'],
     install_requires=['pandas',
                       'numpy',
                       'numba',

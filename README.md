@@ -1,12 +1,12 @@
-# HelioTrak: A Feature Tracking Suite for Solar Physics
+# SoFT: A Feature Tracking Suite for Solar Physics
 
 Small-scale magnetic elements are vital in the energetic balance of the Sun’s atmosphere. These structures cover the entire solar surface and understanding their dynamics can address longstanding questions such as coronal heating and solar wind acceleration.
 
-While existing tracking codes are accessible, they often use outdated or licensed programming languages. **HelioTrak** is a novel feature tracking routine built in Python, designed for reliable detection and fast associations.
+While existing tracking codes are accessible, they often use outdated or licensed programming languages. **SoFT: Solar Feature Tracking** is a novel feature tracking routine built in Python, designed for reliable detection and fast associations.
 
 ### Detection and Identification: The Watershed Algorithm
 
-The detection phase in HelioTrak involves:
+The detection phase in SoFT involves:
 
 1. **Threshold Masking**: Mask out pixels below a given threshold to reduce noise.
 2. **Local Maxima Detection**: Identify peaks separated by a user-defined minimum distance.
@@ -37,15 +37,15 @@ After association, the physical properties of magnetic structures are estimated 
 Clone the repository and install the required dependencies:
 
 ```sh
-git clone https://github.com/mib-unitn/HelioTrak.git
-cd HelioTrak
+git clone https://github.com/mib-unitn/SoFT.git
+cd SoFT
 pip install .
 ```
 
 ## Usage
 
 ```sh
-import HelioTrak.HelioTrak as ht
+import soft.soft as st
 
 #Set the path to the data
 datapath =  #Path to the data
@@ -63,5 +63,10 @@ separation = # If True, the detection method selected is "fine", if False, the d
 verbose=False #If True, the code will print a more detailed output of the tracking process
 
 
-ht.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation, verbose=False)
+st.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation, verbose=False)
 ```
+
+
+
+
+<sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup><sub><sup> Tiny Text</sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub></sup></sub>

@@ -1,0 +1,26 @@
+Metadata-Version: 2.1
+Name: SoFT
+Version: 0.0.1
+Summary: A Python lib for Solar Feature Tracking
+Home-page: https://github.com/mib-unitn/SoFT
+Author: Michele Berretti
+Author-email: michele.berretti@unitn.it
+License: GPL-3.0
+Classifier: DDevelopment Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+License-File: LICENSE
+Requires-Dist: pandas
+Requires-Dist: numpy
+Requires-Dist: numba
+Requires-Dist: astropy
+Requires-Dist: scipy
+Requires-Dist: scikit-image
+Requires-Dist: matplotlib
+Requires-Dist: tqdm
+Requires-Dist: pathos
+Requires-Dist: typing

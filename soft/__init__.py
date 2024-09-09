@@ -1,4 +1,4 @@
-import HelioTrak.HelioTrak as HelioTrak
+import soft.soft as soft
 import numpy
 import astropy.io.fits
 import scipy

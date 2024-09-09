@@ -1,0 +1,10 @@
+pandas
+numpy
+numba
+astropy
+scipy
+scikit-image
+matplotlib
+tqdm
+pathos
+typing
