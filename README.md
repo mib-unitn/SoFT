@@ -46,6 +46,7 @@ pip install .
 
 ```sh
 import soft.soft as st
+import os
 
 #Set the path to the data
 datapath =  #Path to the data
