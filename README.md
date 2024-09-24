@@ -49,19 +49,19 @@ import soft.soft as st
 import os
 
 #Set the path to the data
-datapath =  #Path to the data
-# Set the number of cores to be used. It will always be selected the minimum between the number of cores available and the number of frames in the data.
-cores = os.cpu_count()
+datapath = "path/to/data"  # Path to the folder containing the "00-data" directory, which should include all the frames in single .fits files.
+cores = os.cpu_count() # Sets the number of cores to be used. It will always be selected the minimum between the number of cores available and the number of frames in the data.
+
 
 #Set the parameters for the detection and identification
-l_thr =  #Intensity [Gauss]
-m_size =  #pixels
-dx =  #Km
-dt = #seconds
-min_dist = #pixels
-sign = # Can be "positive", "negative" or "both, defines the polarity of the features to be tracked
-separation = # If True, the detection method selected is "fine", if False, the detection method selected is "coarse". Check the paper for more details on the detection methods
-verbose=False #If True, the code will print a more detailed output of the tracking process
+l_thr =  #Intensity threshold[Gauss] (float)
+m_size =  #Minimum size in pixels (int)
+dx =  #Km (pixel size of the instrument)
+dt = #seconds (temporal cadence of the instrument)
+min_dist = # minimum required distance between two local maxima. (int)
+sign = # Can be "positive", "negative" or "both, defines the polarity of the features to be tracked (str)
+separation = # If True, the detection method selected is "fine", if False, the detection method selected is "coarse". Check the paper for more details on the detection methods (str)
+verbose=False #If True, the code will print a more detailed output of the tracking process (str)
 
 
 st.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation, verbose=False)
