@@ -44,6 +44,8 @@ pip install .
 
 ## Usage
 
+If you plan to use SoFT in your research or publications, please make sure to cite the corresponding paper: [TBD].
+
 ```sh
 import soft.soft as st
 import os
