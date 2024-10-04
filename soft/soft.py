@@ -565,7 +565,7 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
             mask = (asc_img == i)
             Bm = src_img * mask
             Area = mask.sum()
-            Flux = Bm.sum() / Area
+            Flux = Bm.sum() # / Area
             X = ((mask * x_1) * Bm).sum() / Bm.sum()
             Y = ((mask * y_1) * Bm).sum() / Bm.sum()
             temp = pandas.DataFrame([[i, X, Y, Area, Flux, j]], columns=["label", "X", "Y", "Area", "Flux", "frame"])
@@ -706,7 +706,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
             mask=(asc_img == i)
             Bm=src_img*mask
             Area=mask.sum()
-            Flux=Bm.sum()/Area
+            Flux=Bm.sum() # /Area
             X=((mask*x_1)*Bm).sum()/Bm.sum()
             Y=((mask*y_1)*Bm).sum()/Bm.sum()
             temp = pandas.DataFrame([[i, X, Y, Area, Flux, j]], columns=["label", "X", "Y", "Area", "Flux", "frame"])
@@ -919,7 +919,7 @@ def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: 
             LosV_s = alt_img * mask
             LosV_s[LosV_s == 0] = numpy.nan
             Area = mask.sum()
-            Flux = Bm.sum() / Area
+            Flux = Bm.sum() # / Area
             LosV = LosV_s # numpy.nanmean(LosV_s)
             X = ((mask * x_1) * Bm).sum() / Bm.sum()
             Y = ((mask * y_1) * Bm).sum() / Bm.sum()

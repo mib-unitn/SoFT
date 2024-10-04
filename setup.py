@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='SoFT',
-    version='0.2',    
+    version='0.2.1',    
     description='A Python lib for Solar Feature Tracking',
     url='https://github.com/mib-unitn/SoFT',
     author='Michele Berretti',
