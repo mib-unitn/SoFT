@@ -801,7 +801,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
 ##### WORKFLOW FUNCTION ###########
 ###################################
 
-def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: int, verbose:bool=False) -> None:
+def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: int, verbose:bool=False, doppler:bool =False) -> None:
 
     """
     Executes a pipeline for feature detection, identification, association, tabulation, and data storage based on astronomical FITS files.
@@ -862,7 +862,14 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     print(color.RED + color.BOLD + "Starting tabulation" + color.END)
     asc_files = sorted(glob.glob(os.path.join(datapath,"03-assoc/*.fits")))
     src_files = sorted(glob.glob(os.path.join(datapath+"00-data/*.fits")))
-    df = tabulation_parallel(asc_files, src_files, dx, dt, cores)
+    if doppler:
+        doppler_files = sorted(glob.glob(os.path.join(datapath+"00b-doppler/*.fits")))
+        # Give an error if the path is not found
+        if len(doppler_files) == 0:
+            raise FileNotFoundError("No Doppler files found")
+        df = tabulation_parallel_ss(asc_files, doppler_files, src_files, dx, dt, cores)
+    else:
+        df = tabulation_parallel(asc_files, src_files, dx, dt, cores)
     # Save the dataframe
     df.to_json(os.path.join(datapath+"dataframe.json"))
     end = time.time()
