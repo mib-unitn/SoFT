@@ -816,6 +816,8 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     - dt (float): Time interval between frames (temporal resolution) for velocity computation.
     - sign (str): Sign convention for feature detection ('positive', 'negative', or 'both').
     - separation (int): Separation threshold for feature detection.
+    - verbose (bool, optional): If True, displays detailed progress information. Default is False.
+    - doppler (bool, optional): If True, includes Doppler files for tabulation. Default is False.
 
     Returns:
     - None: Outputs are saved as FITS files and a JSON file containing tabulated data.
@@ -865,6 +867,7 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     if doppler:
         doppler_files = sorted(glob.glob(os.path.join(datapath+"00b-doppler/*.fits")))
         # Give an error if the path is not found
+        # This feature is not yet tested, if any error occurs, please open an issue on github.
         if len(doppler_files) == 0:
             raise FileNotFoundError("No Doppler files found")
         df = tabulation_parallel_ss(asc_files, doppler_files, src_files, dx, dt, cores)
