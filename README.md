@@ -1,8 +1,6 @@
 # SoFT: A Feature Tracking Suite for Solar Physics
 
-Small-scale magnetic elements are vital in the energetic balance of the Sun’s atmosphere. These structures cover the entire solar surface and understanding their dynamics can address longstanding questions such as coronal heating and solar wind acceleration.
-
-While existing tracking codes are accessible, they often use outdated or licensed programming languages. **SoFT: Solar Feature Tracking** is a novel feature tracking routine built in Python, designed for reliable detection and fast associations.
+Small-scale magnetic elements are vital in the energetic balance of the Sun’s atmosphere. These structures cover the entire solar surface and understanding their dynamics can address longstanding questions such as coronal heating and solar wind acceleration. **SoFT: Solar Feature Tracking** is a novel feature tracking routine built in Python, designed for reliable detection and fast associations.
 
 ### Detection and Identification: The Watershed Algorithm
 
@@ -31,6 +29,9 @@ After association, the physical properties of magnetic structures are estimated 
 - **Area**: Determined by counting pixels within the feature's contour.
 - **Magnetic Flux**: Summed from pixel intensities.
 - **Velocity**: Derived from the first-order derivative of barycenter positions.
+
+
+Further details regarding the SoFT tracking code and its performance can be found in [TBD].
 
 ## Installation
 
