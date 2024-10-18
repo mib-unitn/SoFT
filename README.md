@@ -29,6 +29,7 @@ After association, the physical properties of magnetic structures are estimated 
 - **Area**: Determined by counting pixels within the feature's contour.
 - **Magnetic Flux**: Summed from pixel intensities.
 - **Velocity**: Derived from the first-order derivative of barycenter positions.
+- and many other
 
 
 Further details regarding the SoFT tracking code and its performance can be found in [TBD].
