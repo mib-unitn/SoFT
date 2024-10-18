@@ -6,7 +6,7 @@ Small-scale magnetic elements are vital in the energetic balance of the Sun’s 
 
 The detection phase in SoFT involves:
 
-1. **Threshold Masking**: Mask out pixels below a given threshold to reduce noise.
+1. **Threshold Masking**: Mask out pixels below a given threshold to reduce the impact of noise.
 2. **Local Maxima Detection**: Identify peaks separated by a user-defined minimum distance.
 3. **Euclidean Distance Transform (EDT)**: Compute the shortest distance from each non-zero pixel to the background.
 4. **Watershed Segmentation**: Use local maxima as markers and segment the image based on the EDT gradient field.
