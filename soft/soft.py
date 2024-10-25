@@ -568,11 +568,17 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
             Flux = Bm.sum() / Area
             X = ((mask * x_1) * Bm).sum() / Bm.sum()
             Y = ((mask * y_1) * Bm).sum() / Bm.sum()
-            temp = pandas.DataFrame([[i, X, Y, Area, Flux, j]], columns=["label", "X", "Y", "Area", "Flux", "frame"])
+            r = numpy.sqrt(Area / numpy.pi)
+            circle = (x_1 - X)**2 + (y_1 - Y)**2 < r**2
+            circle = circle.astype(int)
+            circle = circle * mask
+            Area_circle = circle.sum()
+            ecc = Area_circle / Area
+            temp = pandas.DataFrame([[i, X, Y, Area, Flux, j, ecc]], columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
             df_temp = pandas.concat([df_temp, temp], ignore_index=False)
         return df_temp
 
-    df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame"])
+    df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
     img = astropy.io.fits.getdata(filesB[0], memmap=False)
     size = numpy.shape(img)
     x_1, y_1 = numpy.meshgrid(numpy.arange(size[1]), numpy.arange(size[0]))
@@ -592,6 +598,7 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
     Y_tot = []
     label_tot = []
     frame_tot = []
+    ecc_tot = []
 
     for name, group in groups:
         area_temp = group["Area"].values
@@ -600,6 +607,7 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
         Y_temp = group["Y"].values
         label_temp = group["label"].values
         frame_temp = group["frame"].values
+        ecc_temp = group["ecc"].values
 
         # Perform some sanity checks
         if len(area_temp) != len(flux_temp):
@@ -623,8 +631,9 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
         Y_tot.append(Y_temp)
         label_tot.append(label_temp)
         frame_tot.append(frame_temp)
+        ecc_tot.append(ecc_temp)
 
-    df_final = pandas.DataFrame(columns=["label", "Lifetime", "X", "Y", "Area", "Flux"])
+    df_final = pandas.DataFrame(columns=["label", "Lifetime", "X", "Y", "Area", "Flux", "Frames", "ecc"])
     df_final["label"] = [x[0] for x in label_tot]
     df_final["Lifetime"] = [len(x) for x in frame_tot]
     df_final["X"] = X_tot
@@ -632,6 +641,7 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
     df_final["Area"] = area_tot
     df_final["Flux"] = flux_tot
     df_final["Frames"] = frame_tot
+    df_final["ecc"] = ecc_tot
     df_final = df_final[df_final["Lifetime"] >= minliftime]
 
     # Compute the velocities
@@ -692,7 +702,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
     PSA: This docstring has been written with the aid of AI.
     """
 
-    df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame"])
+    df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
     img = astropy.io.fits.getdata(filesB[0], memmap=False)
     size=numpy.shape(img)
     x_1, y_1 = numpy.meshgrid(numpy.arange(size[1]), numpy.arange(size[0])) 
@@ -709,7 +719,13 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
             Flux=Bm.sum()/Area
             X=((mask*x_1)*Bm).sum()/Bm.sum()
             Y=((mask*y_1)*Bm).sum()/Bm.sum()
-            temp = pandas.DataFrame([[i, X, Y, Area, Flux, j]], columns=["label", "X", "Y", "Area", "Flux", "frame"])
+            r = numpy.sqrt(Area / numpy.pi)
+            circle = (x_1 - X)**2 + (y_1 - Y)**2 < r**2
+            circle = circle.astype(int)
+            circle = circle * mask
+            Area_circle = circle.sum()
+            ecc = Area_circle / Area
+            temp = pandas.DataFrame([[i, X, Y, Area, Flux, j, ecc]], columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
             df = pandas.concat([df, temp], ignore_index=False)
 
     # Merge the common labels
@@ -721,6 +737,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
     Y_tot = []
     label_tot = []
     frame_tot = []
+    ecc_tot = []
 
     for name, group in tqdm.tqdm(groups, desc="Merging common labels"):
         area_temp = group["Area"].values
@@ -729,6 +746,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
         Y_temp = group["Y"].values
         label_temp = group["label"].values
         frame_temp = group["frame"].values
+        ecc_temp = group["ecc"].values
 
 
         # Perform some sanity checks
@@ -753,10 +771,11 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
         Y_tot.append(Y_temp)
         label_tot.append(label_temp)
         frame_tot.append(frame_temp)
+        ecc_tot.append(ecc_temp)
 
 
 
-    df_final = pandas.DataFrame(columns=["label", "Lifetime", "X", "Y", "Area", "Flux"])
+    df_final = pandas.DataFrame(columns=["label", "Lifetime", "X", "Y", "Area", "Flux", "Frames", "ecc"])
     df_final["label"] = [x[0] for x in label_tot]
     df_final["Lifetime"] = [len(x) for x in frame_tot]
     df_final["X"] = X_tot
@@ -764,6 +783,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
     df_final["Area"] = area_tot
     df_final["Flux"] = flux_tot
     df_final["Frames"] = frame_tot
+    df_final["ecc"] = ecc_tot
     df_final = df_final[df_final["Lifetime"] >= minliftime]
 
     # Compute the velocities
@@ -801,7 +821,7 @@ def tabulation(files: str, filesB: str,dx: float, dt: float, cores: int, minlift
 ##### WORKFLOW FUNCTION ###########
 ###################################
 
-def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: int, verbose:bool=False, doppler:bool =False) -> None:
+def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: bool, verbose:bool=False, doppler:bool =False) -> None:
 
     """
     Executes a pipeline for feature detection, identification, association, tabulation, and data storage based on astronomical FITS files.
@@ -920,7 +940,7 @@ def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: 
         asc_img = astropy.io.fits.getdata(file, memmap=False)
         alt_img = astropy.io.fits.getdata(filesD[j], memmap=False)
         unique_ids = numpy.unique(asc_img)
-        df_temp = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V" "frame"])
+        df_temp = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame", "ecc"])
         for i in unique_ids:
             if i == 0:
                 continue
@@ -933,17 +953,23 @@ def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: 
             LosV = LosV_s # numpy.nanmean(LosV_s)
             X = ((mask * x_1) * Bm).sum() / Bm.sum()
             Y = ((mask * y_1) * Bm).sum() / Bm.sum()
-            temp = pandas.DataFrame([[i, X, Y, Area, Flux, LosV, j]], columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame"])
+            r = numpy.sqrt(Area / numpy.pi)
+            circle = (x_1 - X)**2 + (y_1 - Y)**2 < r**2
+            circle = circle.astype(int)
+            circle = circle * mask
+            Area_circle = circle.sum()
+            ecc = Area_circle / Area
+            temp = pandas.DataFrame([[i, X, Y, Area, Flux, LosV, j, ecc]], columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame", "ecc"])
             df_temp = pandas.concat([df_temp, temp], ignore_index=False)
         return df_temp
 
-    df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame"])
+    df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame", "ecc"])
     img = astropy.io.fits.getdata(filesB[0], memmap=False)
     size = numpy.shape(img)
     x_1, y_1 = numpy.meshgrid(numpy.arange(size[1]), numpy.arange(size[0]))
 
     with ProcessingPool(cores) as p:
-        results = list(tqdm(p.imap(process_file, range(len(files))), total=len(files), desc="Tabulation"))
+        results = list(p.imap(process_file, range(len(files))))
 
     for result in results:
         df = pandas.concat([df, result], ignore_index=False)
@@ -958,6 +984,7 @@ def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: 
     Y_tot = []
     label_tot = []
     frame_tot = []
+    ecc_tot = []
 
     for name, group in tqdm(groups, desc="Merging common labels"):
         area_temp = group["Area"].values
@@ -967,6 +994,7 @@ def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: 
         Y_temp = group["Y"].values
         label_temp = group["label"].values
         frame_temp = group["frame"].values
+        ecc_temp = group["ecc"].values
 
         # Perform some sanity checks
         if len(area_temp) != len(flux_temp):
@@ -993,8 +1021,9 @@ def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: 
         Y_tot.append(Y_temp)
         label_tot.append(label_temp)
         frame_tot.append(frame_temp)
+        ecc_tot.append(ecc_temp)
 
-    df_final = pandas.DataFrame(columns=["label", "Lifetime", "X", "Y", "Area", "Flux", "LOS_V"])
+    df_final = pandas.DataFrame(columns=["label", "Lifetime", "X", "Y", "Area", "Flux", "LOS_V", "Frames", "ecc"])
     df_final["label"] = [x[0] for x in label_tot]
     df_final["Lifetime"] = [len(x) for x in frame_tot]
     df_final["X"] = X_tot
@@ -1003,6 +1032,7 @@ def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: 
     df_final["Flux"] = flux_tot
     df_final["LOS_V"] = losv_tot
     df_final["Frames"] = frame_tot
+    df_final["ecc"] = ecc_tot
     df_final = df_final[df_final["Lifetime"] >= minliftime]
 
     # Compute the velocities
@@ -1035,7 +1065,7 @@ def tabulation_parallel_ss(files: str, filesD: str, filesB: str, dx: float, dt: 
     return df_final
 
 
-def track_sunspots(datapath: str, cores: int, l_thr: float, min_size: int, dx: float, dt: float, doppler_path:str=None, verbose:bool=False) -> None:
+def track_sunspots(datapath: str, cores: int, l_thr: float, min_size: int, dx: float, dt: float, doppler:bool=False, verbose:bool=False) -> None:
 
     # "Perchè il Capitano po' fa tutto"
     # Load the data
@@ -1051,7 +1081,7 @@ def track_sunspots(datapath: str, cores: int, l_thr: float, min_size: int, dx: f
     print(color.RED + color.BOLD + "Detecting features..." + color.END)
 
     with multiprocessing.Pool(number_of_workers) as p:
-        p.starmap(process_image_ss, [(datapath, img, l_thr, min_size, verbose) for img in data])
+        p.starmap(process_image_ss, [(datapath, img, l_thr, min_size) for img in data])
     # Assign unique IDs
     print(color.RED + color.BOLD + "Assigning unique IDs..." + color.END)
     id_data = sorted(glob.glob(datapath+"02-id/*.fits"))
@@ -1067,8 +1097,10 @@ def track_sunspots(datapath: str, cores: int, l_thr: float, min_size: int, dx: f
     print(color.RED + color.BOLD + "Starting tabulation" + color.END)
     asc_files = sorted(glob.glob(os.path.join(datapath,"03-assoc/*.fits")))
     src_files = sorted(glob.glob(os.path.join(datapath+"00-data/*.fits")))
-    if doppler_path is not None:
+    if doppler:
         doppler_files = sorted(glob.glob(os.path.join(datapath+"00b-doppler/*.fits")))
+        if len(doppler_files) == 0:
+            raise FileNotFoundError("No Doppler files found")
         df = tabulation_parallel_ss(asc_files, doppler_files, src_files, dx, dt, cores)
     else:
         df = tabulation_parallel(asc_files, src_files, dx, dt, cores)
