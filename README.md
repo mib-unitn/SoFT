@@ -1,14 +1,12 @@
 # SoFT: A Feature Tracking Suite for Solar Physics
 
-Small-scale magnetic elements are vital in the energetic balance of the Sun’s atmosphere. These structures cover the entire solar surface and understanding their dynamics can address longstanding questions such as coronal heating and solar wind acceleration.
-
-While existing tracking codes are accessible, they often use outdated or licensed programming languages. **SoFT: Solar Feature Tracking** is a novel feature tracking routine built in Python, designed for reliable detection and fast associations.
+Small-scale magnetic elements are vital in the energetic balance of the Sun’s atmosphere. These structures cover the entire solar surface and understanding their dynamics can address longstanding questions such as coronal heating and solar wind acceleration. **SoFT: Solar Feature Tracking** is a novel feature tracking routine built in Python, designed for reliable detection and fast associations.
 
 ### Detection and Identification: The Watershed Algorithm
 
 The detection phase in SoFT involves:
 
-1. **Threshold Masking**: Mask out pixels below a given threshold to reduce noise.
+1. **Threshold Masking**: Mask out pixels below a given threshold to reduce the impact of noise.
 2. **Local Maxima Detection**: Identify peaks separated by a user-defined minimum distance.
 3. **Euclidean Distance Transform (EDT)**: Compute the shortest distance from each non-zero pixel to the background.
 4. **Watershed Segmentation**: Use local maxima as markers and segment the image based on the EDT gradient field.
@@ -31,6 +29,10 @@ After association, the physical properties of magnetic structures are estimated 
 - **Area**: Determined by counting pixels within the feature's contour.
 - **Magnetic Flux**: Summed from pixel intensities.
 - **Velocity**: Derived from the first-order derivative of barycenter positions.
+- and many other
+
+
+Further details regarding the SoFT tracking code and its performance can be found in [TBD].
 
 ## Installation
 
@@ -58,15 +60,16 @@ cores = os.cpu_count() # Sets the number of cores to be used. It will always be 
 #Set the parameters for the detection and identification
 l_thr =  #Intensity threshold[Gauss] (float)
 m_size =  #Minimum size in pixels (int)
-dx =  #Km (pixel size of the instrument)
-dt = #seconds (temporal cadence of the instrument)
+dx =  #Km (pixel size of the instrument) (float)
+dt = #seconds (temporal cadence of the instrument) (float)
 min_dist = # minimum required distance between two local maxima. (int)
-sign = # Can be "positive", "negative" or "both, defines the polarity of the features to be tracked (str)
-separation = # If True, the detection method selected is "fine", if False, the detection method selected is "coarse". Check the paper for more details on the detection methods (str)
-verbose=False #If True, the code will print a more detailed output of the tracking process (str)
+sign = "both" # Can be "positive", "negative" or "both, defines the polarity of the features to be tracked (str)
+separation = True  # If True, the detection method selected is "fine", if False, the detection method selected is "coarse". Check the paper for more details on the detection methods (bool)
+verbose=False #If True, the code will print a more detailed output of the tracking process (bool)
+doppler=False # If True, SoFT will also estimate the line-of-sight velocity within the detected features from separate dopplergram files in the 00b-data folder (bool)
 
 
-st.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation, verbose=False)
+st.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation, verbose, doppler)
 ```
 
 
