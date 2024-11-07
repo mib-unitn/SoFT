@@ -53,7 +53,7 @@ import soft.soft as st
 import os
 
 #Set the path to the data
-datapath = "path/to/data"  # Path to the folder containing the "00-data" directory, which should include all the frames in single .fits files.
+datapath = "path/to/data/"  # Path to the folder containing the "00-data" directory, which should include all the frames in single .fits files.
 cores = os.cpu_count() # Sets the number of cores to be used. It will always be selected the minimum between the number of cores available and the number of frames in the data.
 
 
