@@ -1,8 +1,8 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='SoFT',
-    version='0.2_rc2',    
+    version='0.3_rc3',    
     description='A Python lib for Solar Feature Tracking',
     url='https://github.com/mib-unitn/SoFT',
     author='Michele Berretti',

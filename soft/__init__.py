@@ -1,4 +1,4 @@
-import soft.soft as soft
+import soft
 import numpy
 import astropy.io.fits
 import scipy
