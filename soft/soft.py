@@ -466,15 +466,8 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     cube1 = astropy.io.fits.getdata(fname1, memmap=False)
     cube2 = astropy.io.fits.getdata(fname2, memmap=False)
 
-    if len(numpy.shape(cube1)) == 2:
-        file1 = cube1
-    else: 
-        file1 = cube1[-1, :, :]
-    
-    if len(numpy.shape(cube2)) == 2:
-        file2 = cube2
-    else:
-        file2 = cube2[0, :, :]
+    file1 = cube1[-1] if cube1.ndim > 2 else cube1
+    file2 = cube2[0] if cube2.ndim > 2 else cube2
 
 
     unique_id_1 = numpy.unique(file1)
@@ -487,8 +480,7 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
         set1 = numpy.stack((wh1[0], wh1[1])).T
         max_intersection_size = 0
         # create a mask of the element of the first image in the second image
-        temp_mask = numpy.zeros(file2.shape)
-        temp_mask[wh1] = 1
+        temp_mask = numpy.where(file1 == id_1, 1, 0)
         temp_file2 = file2 * temp_mask
         unique_id_2 = numpy.unique(temp_file2)
         unique_id_2 = unique_id_2[unique_id_2 != 0]
@@ -513,8 +505,7 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
         set2 = numpy.stack((wh2[0], wh2[1])).T
         max_intersection_size = 0
         # create a mask of the element of the first image in the second image
-        temp_mask = numpy.zeros(file1.shape)
-        temp_mask[wh2] = 1
+        temp_mask = numpy.where(file2 == id_2, 1, 0)
         temp_file1 = file1 * temp_mask
         unique_id_1 = numpy.unique(temp_file1)
         unique_id_1 = unique_id_1[unique_id_1 != 0]

@@ -32,7 +32,7 @@ After association, the physical properties of magnetic structures are estimated 
 - and many other
 
 
-Further details regarding the SoFT tracking code and its performance can be found in [TBD].
+Further details regarding the SoFT tracking code and its performance can be found in [Berretti et al. 2024](https://doi.org/10.1051/0004-6361/202452665).
 
 ## Installation
 
@@ -43,10 +43,15 @@ git clone https://github.com/mib-unitn/SoFT.git
 cd SoFT
 pip install .
 ```
+or
+
+```sh
+pip install solar_ft
+```
 
 ## Usage
 
-If you plan to use SoFT in your research or publications, please make sure to cite the corresponding paper: [TBD].
+If you plan to use SoFT in your research or publications, please make sure to cite the corresponding paper: [Berretti et al. 2024](https://doi.org/10.1051/0004-6361/202452665).
 
 ```sh
 import soft.soft as st

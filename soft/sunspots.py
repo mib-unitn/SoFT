@@ -355,7 +355,36 @@ def associate(datapath: str, verbose:bool=False) -> None:
 
     print(color.GREEN + color.BOLD + "Finished association" + color.END)
 
+def array_row_intersection(a: numpy.ndarray,b:numpy.ndarray) -> numpy.ndarray:
+   
+    """
+    Finds the intersection of rows between two 2D numpy arrays.
 
+    This function identifies rows that are present in both input arrays `a` and `b` and returns the rows from `a`
+    that are also in `b`. The function is optimized for performance using numpy operations.
+
+    Parameters:
+    a (numpy.ndarray): A 2D numpy array.
+    b (numpy.ndarray): A 2D numpy array.
+
+    Returns:
+    numpy.ndarray: A 2D numpy array containing the rows from `a` that are also present in `b`.
+
+    Note:
+    This function is adapted from a solution provided by Vasilis Lemonidis on Stack Overflow.
+    All credit goes to the original author. Source: https://stackoverflow.com/a/40600991
+
+    Example:
+    a = np.array([[1, 2], [3, 4], [5, 6]])
+    b = np.array([[3, 4], [7, 8]])
+    result = array_row_intersection(a, b)
+    # result will be array([[3, 4]])
+
+    PSA: This docstring has been written with the assistance of AI.
+    """
+
+    tmp=numpy.prod(numpy.swapaxes(a[:,:,None],1,2)==b,axis=2)
+    return a[numpy.sum(numpy.cumsum(tmp,axis=0)*tmp==1,axis=1).astype(bool)]
 
 def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datapath: str, verbose:bool=False) -> None:
 
@@ -387,15 +416,8 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     cube1 = astropy.io.fits.getdata(fname1, memmap=False)
     cube2 = astropy.io.fits.getdata(fname2, memmap=False)
 
-    if len(numpy.shape(cube1)) == 2:
-        file1 = cube1
-    else: 
-        file1 = cube1[-1, :, :]
-    
-    if len(numpy.shape(cube2)) == 2:
-        file2 = cube2
-    else:
-        file2 = cube2[0, :, :]
+    file1 = cube1[-1] if cube1.ndim > 2 else cube1
+    file2 = cube2[0] if cube2.ndim > 2 else cube2
 
 
     unique_id_1 = numpy.unique(file1)
@@ -408,8 +430,7 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
         set1 = numpy.stack((wh1[0], wh1[1])).T
         max_intersection_size = 0
         # create a mask of the element of the first image in the second image
-        temp_mask = numpy.zeros(file2.shape)
-        temp_mask[wh1] = 1
+        temp_mask = numpy.where(file1 == id_1, 1, 0)
         temp_file2 = file2 * temp_mask
         unique_id_2 = numpy.unique(temp_file2)
         unique_id_2 = unique_id_2[unique_id_2 != 0]
@@ -434,8 +455,7 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
         set2 = numpy.stack((wh2[0], wh2[1])).T
         max_intersection_size = 0
         # create a mask of the element of the first image in the second image
-        temp_mask = numpy.zeros(file1.shape)
-        temp_mask[wh2] = 1
+        temp_mask = numpy.where(file2 == id_2, 1, 0)
         temp_file1 = file1 * temp_mask
         unique_id_1 = numpy.unique(temp_file1)
         unique_id_1 = unique_id_1[unique_id_1 != 0]
