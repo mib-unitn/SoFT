@@ -1,0 +1,13 @@
+LICENSE
+README.md
+setup.py
+soft/__init__.py
+soft/extras.py
+soft/largesets.py
+soft/soft.py
+soft/sunspots.py
+solar_ft.egg-info/PKG-INFO
+solar_ft.egg-info/SOURCES.txt
+solar_ft.egg-info/dependency_links.txt
+solar_ft.egg-info/requires.txt
+solar_ft.egg-info/top_level.txt
