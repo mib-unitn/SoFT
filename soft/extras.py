@@ -220,3 +220,28 @@ def amp_map(datapath, minlifetime=15, flag="x", title=None):
     matplotlib.pyplot.colorbar(label="Amplitude (km/s)")
     if title != None:
         matplotlib.pyplot.savefig(f"{title}.png")
+
+
+def get_roi(img: numpy.ndarray, size: int = 20) -> tuple[numpy.ndarray, tuple[int, int]]:
+    """
+    Automatically identify the region of interest (ROI) in the image with the most values near zero.
+
+    Parameters:
+    img (numpy.ndarray): The input image.
+    size (int): The size of the square ROI.
+
+    Returns:
+    tuple: A tuple containing the ROI and the bounding box coordinates (i, j).
+
+    PSA: This docstring was written with the aid of AI.
+    """
+    roi = numpy.zeros((size, size))
+    older_roi = numpy.ones((size, size)) * 1e9
+    bbox = None
+    for i in range(img.shape[0] - size):
+        for j in range(img.shape[1] - size):
+            roi = img[i:i + size, j:j + size]
+            if numpy.mean(numpy.abs(roi)) < numpy.mean(numpy.abs(older_roi)):
+                older_roi = roi
+                bbox = (i, j)
+    return older_roi, bbox
