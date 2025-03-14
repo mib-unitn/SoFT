@@ -575,8 +575,6 @@ def associate(datapath: str, verbose:bool=False, number_of_workers:int=None) -> 
 
     PSA: This docstring has been written with the assistance of AI.
     """
-    if number_of_workers is None: 
-        number_of_workers = os.cpu_count()
     
     id_data = sorted(glob.glob(datapath+"02-id/*.fits"))
     round = 0
