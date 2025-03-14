@@ -83,7 +83,7 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     print(color.GREEN + color.BOLD + "Feature detection step ended" + color.END)
     print(color.RED + color.BOLD + "Associating features..." + color.END)
     # Associate the detections
-    associate(datapath, verbose)
+    associate(datapath, verbose, number_of_workers)
     # delet all temp folders regardless of the files inside
     print(color.RED + color.BOLD + "Cleaning up" + color.END)
     os.system(f"rm -rf {datapath}temp*")
@@ -547,7 +547,7 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
         print(color.YELLOW + f"Done with {fname1.split(os.sep)[-1]}, {fname2.split(os.sep)[-1]}" + color.END)
 
 
-def associate(datapath: str, verbose:bool=False) -> None:
+def associate(datapath: str, verbose:bool=False, number_of_workers:int=None) -> None:
 
     """
     Perform association of FITS files using parallel processing.
@@ -559,6 +559,8 @@ def associate(datapath: str, verbose:bool=False) -> None:
 
     Parameters:
     datapath (str): The base directory path containing the data.
+    verbose (bool): set to true to print additional informations.
+    number_of_workers (int): number of workers for the parallel work
 
     Returns:
     None
@@ -573,8 +575,7 @@ def associate(datapath: str, verbose:bool=False) -> None:
 
     PSA: This docstring has been written with the assistance of AI.
     """
-
-    number_of_workers = os.cpu_count()
+    
     id_data = sorted(glob.glob(datapath+"02-id/*.fits"))
     round = 0
     # make a folder named temp to store the results of the rounds of association
