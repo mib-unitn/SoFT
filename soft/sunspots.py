@@ -601,8 +601,6 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
         y = numpy.array(y)
         vx = numpy.gradient(x) * dx / dt
         vy = numpy.gradient(y) * dx / dt
-        vx = vx - numpy.mean(vx)
-        vy = vy - numpy.mean(vy)
         stdx = numpy.std(vx)
         stdy = numpy.std(vy)
         vxtot.append(vx)
@@ -733,8 +731,6 @@ def tabulation_parallel_doppler(files: str, filesD: str, filesB: str, dx: float,
         y = numpy.array(y)
         vx = numpy.gradient(x) * dx / dt
         vy = numpy.gradient(y) * dx / dt
-        vx = vx - numpy.mean(vx)
-        vy = vy - numpy.mean(vy)
         stdx = numpy.std(vx)
         stdy = numpy.std(vy)
         vxtot.append(vx)
