@@ -476,8 +476,13 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     forward_matches_1 = numpy.empty(0)
     forward_matches_2 = numpy.empty(0)
     for id_1 in tqdm.tqdm(unique_id_1, leave=False, desc="Forward matching"):
-        wh1 = numpy.where(file1 == id_1)
-        set1 = numpy.stack((wh1[0], wh1[1])).T
+        try:
+            wh1 = numpy.where(file1 == id_1)
+            set1 = numpy.stack((wh1[0], wh1[1])).T
+        except:
+            print(f"Error in forward matching for id_1: {id_1}. Skipping.")
+            print(f"Frame was {fname1.split(os.sep)[-1]} and round was {round}")
+            raise ValueError("Error in forward matching. Check the input files.")
         max_intersection_size = 0
         # create a mask of the element of the first image in the second image
         temp_mask = numpy.where(file1 == id_1, 1, 0)
@@ -501,8 +506,13 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     backward_matches_1 = numpy.empty(0)
     backward_matches_2 = numpy.empty(0)
     for id_2 in tqdm.tqdm(unique_id_2, leave=False, desc="Backward matching"):
-        wh2 = numpy.where(file2 == id_2)
-        set2 = numpy.stack((wh2[0], wh2[1])).T
+        try:
+            wh2 = numpy.where(file2 == id_2)
+            set2 = numpy.stack((wh2[0], wh2[1])).T
+        except:
+            print(f"Error in backward matching for id_2: {id_2}. Skipping.")
+            print(f"Frame was {fname2.split(os.sep)[-1]} and round was {round}")
+            raise ValueError("Error in backward matching. Check the input files.")
         max_intersection_size = 0
         # create a mask of the element of the first image in the second image
         temp_mask = numpy.where(file2 == id_2, 1, 0)
@@ -632,7 +642,9 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
         src_img = astropy.io.fits.getdata(filesB[j], memmap=False)
         asc_img = astropy.io.fits.getdata(file, memmap=False)
         unique_ids = numpy.unique(asc_img)
-        df_temp = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame"])
+
+        results = []  # collect DataFrames here
+
         for i in tqdm.tqdm(unique_ids, leave=False, desc=f"Frame {j}"):
             if i == 0:
                 continue
@@ -649,7 +661,12 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
             Area_circle = circle.sum()
             ecc = Area_circle / Area
             temp = pandas.DataFrame([[i, X, Y, Area, Flux, j, ecc]], columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
-            df_temp = pandas.concat([df_temp, temp], ignore_index=False)
+            if not temp.empty and not temp.isna().all(axis=None):
+                results.append(temp)
+        if results:
+            df_temp = pandas.concat(results, ignore_index=True)
+        else:
+            df_temp = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
         return df_temp
 
     df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
