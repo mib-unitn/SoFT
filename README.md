@@ -53,7 +53,7 @@ pip install solar_ft
 
 ## Usage
 
-If you plan to use SoFT in your research or publications, please make sure to cite the corresponding paper: [Berretti et al. 2024](https://doi.org/10.1051/0004-6361/202452665).
+If you plan to use SoFT in your research or publications, please make sure to cite the corresponding paper: [Berretti et al. 2025](https://doi.org/10.1051/0004-6361/202452665).
 
 ```sh
 import soft.soft as st
