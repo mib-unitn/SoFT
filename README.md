@@ -34,7 +34,7 @@ After association, the physical properties of magnetic structures are estimated 
 - and many other
 
 
-Further details regarding the SoFT tracking code and its performance can be found in [Berretti et al. 2024](https://doi.org/10.1051/0004-6361/202452665).
+Further details regarding the SoFT tracking code and its performance can be found in [Berretti et al. 2025](https://doi.org/10.1051/0004-6361/202452665).
 
 ## Installation
 
