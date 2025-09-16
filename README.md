@@ -1,4 +1,4 @@
-# SoFT: A Feature Tracking Suite for Solar Physics
+![SoFT logo](https://raw.githubusercontent.com/mib-unitn/SoFT/master/logo.png)
 
 <a href="https://ascl.net/2508.008"><img src="https://img.shields.io/badge/ascl-2508.008-blue.svg?colorB=262255" alt="ascl:2508.008" /></a>
 
