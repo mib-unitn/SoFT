@@ -175,37 +175,63 @@ def housekeeping(datapath: str) -> None:
 
 
 def peak_local_max(img, min_dist, h_thr, sign):
+    """
+    Detect local maxima (or minima) in an image while enforcing a minimum 
+    distance between detected peaks.
 
+    Parameters
+    ----------
+    img : ndarray
+        Input image (2D).
+    min_dist : int, optional
+        Minimum allowed Euclidean distance between detected peaks. Default is 5.
+    h_thr : float, optional
+        Threshold value for preprocessing peaks. Default is 0.5.
+    sign : {"pos", "neg"}
+        Whether to detect positive ("pos") or negative ("neg") peaks.
+
+    Returns
+    -------
+    centroids : ndarray of shape (N, 2)
+        Array of (row, col) centroid coordinates of detected peaks.
+    """
+    # Preprocess
     if sign == "neg":
-        img = img_pre_neg(img, h_thr)
+        img_proc = img_pre_neg(img, h_thr)
     elif sign == "pos":
-        img = img_pre_pos(img, h_thr)
+        img_proc = img_pre_pos(img, h_thr)
     else:
-        raise ValueError('sign must be "neg" or "pos" or "both"')
-    
-    labels = skimage.measure.label(img)
-    centroids = skimage.measure.regionprops_table(labels, properties=['centroid'])
-    centroids = numpy.array(list(zip(centroids['centroid-0'], centroids['centroid-1'])))
-    if len(centroids) == 0:
-        raise Warning("No centroids found, you may want to lower the threshold")
-        return centroids
-    
+        raise ValueError('`sign` must be either "neg" or "pos".')
+
+    # Label connected components on binary mask
+    mask = img_proc > 0
+    labels = skimage.measure.label(mask)
+    props = skimage.measure.regionprops_table(labels, properties=["centroid"])
+    centroids = numpy.column_stack((props["centroid-0"], props["centroid-1"]))
+
+    if centroids.size == 0:
+        raise RuntimeWarning("No centroids found — try lowering the threshold.")
+
+    # Compute pairwise distances between centroids
     diff = centroids[:, None, :] - centroids[None, :, :]
     dist_matrix = numpy.sqrt(numpy.sum(diff**2, axis=-1))
+
+    # Find pairs of centroids closer than min_dist
     triu_indices = numpy.triu_indices(len(centroids), k=1)
     close_pairs = numpy.where(dist_matrix[triu_indices] < min_dist)[0]
+
+    # Decide which centroid to remove in each close pair
     to_remove = set()
     for idx in close_pairs:
-        i = triu_indices[0][idx]
-        j = triu_indices[1][idx]
-        val_i = img[int(centroids[i][0]), int(centroids[i][1])]
-        val_j = img[int(centroids[j][0]), int(centroids[j][1])]
-        if val_i < val_j:
-            to_remove.add(i)
-        else:
-            to_remove.add(j)
+        i, j = triu_indices[0][idx], triu_indices[1][idx]
+        val_i = img[int(round(centroids[i][0])), int(round(centroids[i][1]))]
+        val_j = img[int(round(centroids[j][0])), int(round(centroids[j][1]))]
+        to_remove.add(i if val_i < val_j else j)
+
+    # Remove centroids that are too close to stronger neighbors
     if to_remove:
         centroids = numpy.delete(centroids, list(to_remove), axis=0)
+
     return centroids
 
 def img_pre_pos(img: numpy.ndarray, thr: float) -> numpy.ndarray:
