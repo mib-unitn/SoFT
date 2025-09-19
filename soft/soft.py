@@ -28,7 +28,7 @@ class color:
 
 
 
-def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: bool, verbose:bool=False, doppler:bool =False) -> None:
+def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, h_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: bool, verbose:bool=False, doppler:bool =False) -> None:
 
     """
     Executes a pipeline for feature detection, identification, association, tabulation, and data storage based on astronomical FITS files.
@@ -75,7 +75,8 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     print(color.RED + color.BOLD + "Detecting features..." + color.END)
 
     with multiprocessing.Pool(number_of_workers) as p:
-        p.starmap(process_image, [(datapath, img, l_thr, min_distance, sign, separation, min_size, verbose) for img in data])
+        p.starmap(process_image, [(datapath, img, l_thr, h_thr, min_distance, sign, separation, min_size, verbose) for img in data])
+
     # Assign unique IDs
     print(color.RED + color.BOLD + "Assigning unique IDs..." + color.END)
     id_data = sorted(glob.glob(datapath+"02-id/*.fits"))
@@ -173,11 +174,45 @@ def housekeeping(datapath: str) -> None:
 
 
 
-def img_pre_pos(img: numpy.ndarray, l_thr: float) -> numpy.ndarray:
+def peak_local_max(img, min_dist, h_thr, sign):
+
+    if sign == "neg":
+        img = img_pre_neg(img, h_thr)
+    elif sign == "pos":
+        img = img_pre_pos(img, h_thr)
+    else:
+        raise ValueError('sign must be "neg" or "pos" or "both"')
+    
+    labels = skimage.measure.label(img)
+    centroids = skimage.measure.regionprops_table(labels, properties=['centroid'])
+    centroids = numpy.array(list(zip(centroids['centroid-0'], centroids['centroid-1'])))
+    if len(centroids) == 0:
+        raise Warning("No centroids found, you may want to lower the threshold")
+        return centroids
+    
+    diff = centroids[:, None, :] - centroids[None, :, :]
+    dist_matrix = numpy.sqrt(numpy.sum(diff**2, axis=-1))
+    triu_indices = numpy.triu_indices(len(centroids), k=1)
+    close_pairs = numpy.where(dist_matrix[triu_indices] < min_dist)[0]
+    to_remove = set()
+    for idx in close_pairs:
+        i = triu_indices[0][idx]
+        j = triu_indices[1][idx]
+        val_i = img[int(centroids[i][0]), int(centroids[i][1])]
+        val_j = img[int(centroids[j][0]), int(centroids[j][1])]
+        if val_i < val_j:
+            to_remove.add(i)
+        else:
+            to_remove.add(j)
+    if to_remove:
+        centroids = numpy.delete(centroids, list(to_remove), axis=0)
+    return centroids
+
+def img_pre_pos(img: numpy.ndarray, thr: float) -> numpy.ndarray:
     img_pos = img.copy()
     img_pos[img_pos < 0] = 0
     img_pos = numpy.array(img_pos, dtype=numpy.float64)
-    img_pos[img_pos < l_thr] = 0
+    img_pos[img_pos < thr] = 0
     return img_pos
 
 def img_pre_neg(img: numpy.ndarray, l_thr: float) -> numpy.ndarray:
@@ -187,26 +222,22 @@ def img_pre_neg(img: numpy.ndarray, l_thr: float) -> numpy.ndarray:
     img_neg[img_neg < l_thr] = 0
     return img_neg
 
+def watershed_routine(img: numpy.ndarray, l_thr:float, h_thr:float, min_dist: int, sign: str, separation:bool = False) -> tuple[numpy.ndarray, numpy.ndarray]:
 
-def watershed_routine(img: numpy.ndarray, min_dist: int, separation:bool = False) -> tuple[numpy.ndarray, numpy.ndarray]:
-    if separation:
-        distance = scipy.ndimage.distance_transform_edt(img)
-        coords = skimage.feature.peak_local_max(distance, min_distance=min_dist)
-        mask = numpy.zeros(distance.shape, dtype=bool)
-        mask[tuple(coords.T)] = True
-        markers, _ = scipy.ndimage.label(mask)
-        labels_line = skimage.segmentation.watershed(-distance, markers, mask=img, compactness=0.001, watershed_line=True)
-        return labels_line, coords
-    elif not separation:
-        coords = skimage.feature.peak_local_max(img, min_distance=min_dist)
-        mask = numpy.zeros(img.shape, dtype=bool)
-        mask[tuple(coords.T)] = True
-        markers, _ = scipy.ndimage.label(mask)
-        labels = skimage.segmentation.watershed(-img, markers, mask=img, compactness=0.001)
-        labels = numpy.array(labels, dtype=numpy.float64)
-        return labels, coords
-    elif type(separation) != bool:
-        raise ValueError('separation must be a boolean')
+    if sign == "neg":
+        img_low = img_pre_neg(img, l_thr)
+    elif sign == "pos":
+        img_low = img_pre_pos(img, l_thr)
+    else:
+        raise ValueError('sign must be "neg" or "pos"')
+
+    distance = scipy.ndimage.distance_transform_edt(img_low)
+    coords = peak_local_max(img, min_dist, h_thr, sign)
+    mask = numpy.zeros(distance.shape, dtype=bool)
+    mask[tuple(coords.astype(int).T)] = True
+    markers, _ = scipy.ndimage.label(mask)
+    labels_line = skimage.segmentation.watershed(-distance, markers, mask=img_low, compactness=10, watershed_line=separation)
+    return labels_line, coords
 
 
 ###################################
@@ -214,7 +245,7 @@ def watershed_routine(img: numpy.ndarray, min_dist: int, separation:bool = False
 ###################################
 
 
-def detection(img: numpy.ndarray, l_thr: float, min_distance:int,sign:str="both", separation:bool=False, verbose:bool=False) -> Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:
+def detection(img: numpy.ndarray, l_thr: float, h_thr: float, min_distance:int,sign:str="both", separation:bool=False, verbose:bool=False) -> Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:
     
     """
     Detects features in an image using a threshold and watershed algorithm based on the specified sign of features.
@@ -251,22 +282,18 @@ def detection(img: numpy.ndarray, l_thr: float, min_distance:int,sign:str="both"
     
     img = numpy.array(img)
     if sign == "both":
-        img_pos = img_pre_pos(img, l_thr)
-        img_neg = img_pre_neg(img, l_thr)
-        labels_pos,_ = watershed_routine(img_pos, min_distance, separation)
-        labels_neg,_ = watershed_routine(img_neg, min_distance, separation)
+        labels_pos,_ = watershed_routine(img, l_thr, h_thr, min_distance, "pos", separation)
+        labels_neg,_ = watershed_routine(img, l_thr, h_thr, min_distance, "neg", separation)
         labels_neg = -1*labels_neg
         labels = labels_pos + labels_neg
         if verbose:
             print(f"Number of clumps detected: {len(numpy.unique(labels))-1}")
         return labels
     elif sign == "pos":
-        img_pos = img_pre_pos(img, l_thr)
-        labels_pos,_ = watershed_routine(img_pos, min_distance, separation)
+        labels_pos,_ = watershed_routine(img, l_thr, h_thr, min_distance, "pos", separation)
         return labels_pos
     elif sign == "neg":
-        img_neg = img_pre_neg(img, l_thr)
-        labels_neg,_ = watershed_routine(img_neg, min_distance, separation)
+        labels_neg,_ = watershed_routine(img, l_thr, h_thr, min_distance, "pos", separation)
         return labels_neg
     else:
         raise ValueError('sign must be "both", "pos" or "neg"')
@@ -323,7 +350,7 @@ def identification(labels: numpy.ndarray, min_size: int, verbose:bool = False) -
 
     return labels
 
-def process_image(datapath: str, data: str, l_thr: float, min_distance: int, sign:str="both", separation:bool=True, min_size:int=4, verbose:bool=False) -> None:
+def process_image(datapath: str, data: str, l_thr: float, h_thr: float, min_distance: int, sign:str="both", separation:bool=True, min_size:int=4, verbose:bool=False) -> None:
 
     """
     Processes an astronomical image by detecting and identifying clumps within it, and saves the results.
@@ -355,7 +382,7 @@ def process_image(datapath: str, data: str, l_thr: float, min_distance: int, sig
     """
 
     image = astropy.io.fits.getdata(data, memmap=False)
-    labels = detection(image, l_thr, min_distance, sign=sign, separation=separation, verbose=verbose)
+    labels = detection(image, l_thr, h_thr, min_distance, sign=sign, separation=separation, verbose=verbose)
     astropy.io.fits.writeto(datapath+f"01-mask/{data.split(os.sep)[-1]}", labels, overwrite=True)
     labels = identification(labels, min_size, verbose=verbose)
     astropy.io.fits.writeto(datapath+f"02-id/{data.split(os.sep)[-1]}", labels, overwrite=True)
