@@ -9,7 +9,7 @@ Small-scale magnetic elements are vital in the energetic balance of the Sun’s 
 The detection phase in SoFT involves:
 
 1. **Threshold Masking**: Mask out pixels below a given threshold to reduce the impact of noise.
-2. **Local Maxima Detection**: Identify peaks separated by a user-defined minimum distance.
+2. **Local Maxima Detection**: Identify peaks separated by a user-defined minimum distance. Usually the angular resolution of the instrument.
 3. **Euclidean Distance Transform (EDT)**: Compute the shortest distance from each non-zero pixel to the background.
 4. **Watershed Segmentation**: Use local maxima as markers and segment the image based on the EDT gradient field.
 
@@ -65,7 +65,8 @@ cores = os.cpu_count() # Sets the number of cores to be used. It will always be 
 
 
 #Set the parameters for the detection and identification
-l_thr =  #Intensity threshold[Gauss] (float)
+l_thr =  # Low ntensity threshold[Gauss] (float) (used for basin contours)
+h_thr =  #Intensity threshold[Gauss] (float) (used to estimate centroids)
 m_size =  #Minimum size in pixels (int)
 dx =  #Km (pixel size of the instrument) (float)
 dt = #seconds (temporal cadence of the instrument) (float)
