@@ -1,6 +1,8 @@
 ![SoFT logo](https://raw.githubusercontent.com/mib-unitn/SoFT/master/logo.png)
 
-<a href="https://ascl.net/2508.008"><img src="https://img.shields.io/badge/ascl-2508.008-blue.svg?colorB=262255" alt="ascl:2508.008" /></a>
+<a href="https://ascl.net/2508.008"><img src="https://img.shields.io/badge/ascl-2508.008-blue.svg?colorB=262255" alt="ascl:2508.008" /></a>  ![PyPI - Version](https://img.shields.io/pypi/v/solar_ft?style=plastic)  [![DOI](https://zenodo.org/badge/DOI/p687.svg)](https://doi.org/p687)
+
+
 
 Small-scale magnetic elements are vital in the energetic balance of the Sun’s atmosphere. These structures cover the entire solar surface and understanding their dynamics can address longstanding questions such as coronal heating and solar wind acceleration. **SoFT: Solar Feature Tracking** is a novel feature tracking routine built in Python, designed for reliable detection and fast associations.
 
