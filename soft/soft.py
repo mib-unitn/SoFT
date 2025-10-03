@@ -689,60 +689,83 @@ def associate(datapath: str, verbose:bool=False, number_of_workers:int=None) -> 
     print(color.GREEN + color.BOLD + "Finished association" + color.END)
 
 
-def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: int, minliftime: int = 4) -> pandas.DataFrame:
-    def process_file(j):
-        file = files[j]
-        src_img = astropy.io.fits.getdata(filesB[j], memmap=False)
-        asc_img = astropy.io.fits.getdata(file, memmap=False)
-        unique_ids = numpy.unique(asc_img)
+def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: int, minliftime: int = 4) -> pandas.DataFrame:
+    """
+    Process segmentation maps (files) and source FITS files (filesB) in parallel.
+    Extracts blob properties (centroid, area, flux, eccentricity), tracks them across frames,
+    and computes velocities.
 
-        results = []  # collect DataFrames here
+    Parameters
+    ----------
+    files : list
+        List of segmentation FITS files (each pixel labeled by blob ID).
+    filesB : list
+        List of source FITS files with intensity values.
+    dx : float
+        Spatial resolution (e.g. arcsec/pixel).
+    dt : float
+        Temporal resolution (frame cadence).
+    cores : int
+        Number of CPU cores for parallel processing.
+    minliftime : int, optional
+        Minimum number of frames a blob must persist to be included (default=4).
 
-        for i in tqdm.tqdm(unique_ids, leave=False, desc=f"Frame {j}"):
-            if i == 0:
-                continue
-            mask = (asc_img == i)
-            Bm = src_img * mask
-            Area = mask.sum()
-            Flux = Bm.sum() / Area
-            X = ((mask * x_1) * Bm).sum() / Bm.sum()
-            Y = ((mask * y_1) * Bm).sum() / Bm.sum()
-            r = numpy.sqrt(Area / numpy.pi)
-            circle = (x_1 - X)**2 + (y_1 - Y)**2 < r**2
-            circle = circle.astype(int)
-            circle = circle * mask
-            Area_circle = circle.sum()
-            ecc = Area_circle / Area
-            temp = pandas.DataFrame([[i, X, Y, Area, Flux, j, ecc]], columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
-            if not temp.empty and not temp.isna().all(axis=None):
-                results.append(temp)
-        if results:
-            df_temp = pandas.concat(results, ignore_index=True)
-        else:
-            df_temp = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
-        return df_temp
+    Returns
+    -------
+    pandas.DataFrame
+        Summary table with one row per tracked blob:
+        label, Lifetime, arrays of X, Y, Area, Flux, Frames, ecc, Vx, Vy, stdVx, stdVy.
+    """
 
-    df = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
+    # Build coordinate grids once
     img = astropy.io.fits.getdata(filesB[0], memmap=False)
     size = numpy.shape(img)
     x_1, y_1 = numpy.meshgrid(numpy.arange(size[1]), numpy.arange(size[0]))
 
+    def process_file(j):
+        """Process a single frame and return DataFrame of blob properties."""
+        src_img = astropy.io.fits.getdata(filesB[j], memmap=False)
+        asc_img = astropy.io.fits.getdata(files[j], memmap=False)
+        unique_ids = numpy.unique(asc_img)
+
+        records = []
+        for i in tqdm.tqdm(unique_ids, leave=False, desc=f"Frame {j}"):
+            if i == 0:  # skip background
+                continue
+            mask = (asc_img == i)
+            Bm = src_img * mask
+            Area = mask.sum()
+            if Area == 0 or Bm.sum() == 0:
+                continue
+
+            Flux = Bm.sum() / Area
+            X = ((mask * x_1) * Bm).sum() / Bm.sum()
+            Y = ((mask * y_1) * Bm).sum() / Bm.sum()
+
+            r = numpy.sqrt(Area / numpy.pi)
+            circle = ((x_1 - X)**2 + (y_1 - Y)**2 < r**2).astype(int) * mask
+            Area_circle = circle.sum()
+            ecc = Area_circle / Area if Area > 0 else numpy.nan
+
+            records.append({
+                "label": i, "X": X, "Y": Y,
+                "Area": Area, "Flux": Flux,
+                "frame": j, "ecc": ecc
+            })
+
+        return pandas.DataFrame.from_records(records)
+
+    # Parallel execution
     with ProcessingPool(cores) as p:
         results = list(p.imap(process_file, range(len(files))))
 
-    for result in results:
-        df = pandas.concat([df, result], ignore_index=False)
+    df = pandas.concat(results, ignore_index=True)
 
-    # Merge the common labels
+    # Merge by label
     groups = df.groupby("label")
 
-    area_tot = []
-    flux_tot = []
-    X_tot = []
-    Y_tot = []
-    label_tot = []
-    frame_tot = []
-    ecc_tot = []
+    area_tot, flux_tot, X_tot, Y_tot = [], [], [], []
+    label_tot, frame_tot, ecc_tot = [], [], []
 
     for name, group in groups:
         area_temp = group["Area"].values
@@ -753,21 +776,14 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
         frame_temp = group["frame"].values
         ecc_temp = group["ecc"].values
 
-        # Perform some sanity checks
-        if len(area_temp) != len(flux_temp):
-            raise ValueError("area and flux have different lengths")
-        if len(area_temp) != len(X_temp):
-            raise ValueError("area and X have different lengths")
-        if len(area_temp) != len(Y_temp):
-            raise ValueError("area and Y have different lengths")
-        if len(area_temp) != len(label_temp):
-            raise ValueError("area and label have different lengths")
-        if len(area_temp) != len(frame_temp):
-            raise ValueError("area and frame have different lengths")
+        # Sanity checks
+        if not (len(area_temp) == len(flux_temp) == len(X_temp) ==
+                len(Y_temp) == len(label_temp) == len(frame_temp)):
+            raise ValueError(f"Inconsistent lengths in group {name}")
         if len(numpy.unique(label_temp)) > 1:
-            raise ValueError("More than one label in the group")
+            raise ValueError(f"More than one label in group {name}")
         if numpy.any(numpy.diff(frame_temp) != 1):
-            raise ValueError("Frames are not consecutive")
+            raise ValueError(f"Frames are not consecutive for label {name}")
 
         area_tot.append(area_temp)
         flux_tot.append(flux_temp)
@@ -777,42 +793,38 @@ def tabulation_parallel(files: str, filesB: str, dx: float, dt: float, cores: in
         frame_tot.append(frame_temp)
         ecc_tot.append(ecc_temp)
 
-    df_final = pandas.DataFrame(columns=["label", "Lifetime", "X", "Y", "Area", "Flux", "Frames", "ecc"])
-    df_final["label"] = [x[0] for x in label_tot]
-    df_final["Lifetime"] = [len(x) for x in frame_tot]
-    df_final["X"] = X_tot
-    df_final["Y"] = Y_tot
-    df_final["Area"] = area_tot
-    df_final["Flux"] = flux_tot
-    df_final["Frames"] = frame_tot
-    df_final["ecc"] = ecc_tot
+    # Final DataFrame
+    df_final = pandas.DataFrame({
+        "label": [x[0] for x in label_tot],
+        "Lifetime": [len(x) for x in frame_tot],
+        "X": X_tot, "Y": Y_tot,
+        "Area": area_tot, "Flux": flux_tot,
+        "Frames": frame_tot, "ecc": ecc_tot
+    })
+
+    # Apply lifetime filter
     df_final = df_final[df_final["Lifetime"] >= minliftime]
 
-    # Compute the velocities
-    vxtot = []
-    vytot = []
-    stdvxtot = []
-    stdvytot = []
+    # Compute velocities
+    vxtot, vytot, stdvxtot, stdvytot = [], [], [], []
     for j in range(len(df_final)):
-        x = df_final["X"].iloc[j]
-        y = df_final["Y"].iloc[j]
-        x = numpy.array(x)
-        y = numpy.array(y)
+        x = numpy.array(df_final["X"].iloc[j])
+        y = numpy.array(df_final["Y"].iloc[j])
+
         vx = numpy.gradient(x) * dx / dt
         vy = numpy.gradient(y) * dx / dt
-        stdx = numpy.std(vx)
-        stdy = numpy.std(vy)
+
         vxtot.append(vx)
         vytot.append(vy)
-        stdvxtot.append(stdx)
-        stdvytot.append(stdy)
+        stdvxtot.append(numpy.std(vx))
+        stdvytot.append(numpy.std(vy))
+
     df_final["Vx"] = vxtot
     df_final["Vy"] = vytot
     df_final["stdVx"] = stdvxtot
     df_final["stdVy"] = stdvytot
 
     df_final = df_final.reset_index(drop=True)
-
     return df_final
 
 

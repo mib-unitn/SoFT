@@ -7,7 +7,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='solar_ft',
-    version='2.0.1',
+    version='2.1.0',
     description='A Python lib for Solar Feature Tracking',
     long_description=long_description,
     long_description_content_type='text/markdown',
