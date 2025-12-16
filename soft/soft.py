@@ -53,6 +53,7 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, h_thr:
     - FileNotFoundError: If there are issues with file paths or missing directories.
 
     Notes:
+
     - This function coordinates the detection, identification, association, tabulation, and storage of astronomical features
       across multiple FITS files in the specified 'datapath'.
     - The process involves multiple subprocesses, including cleaning up temporary files, feature detection, ID assignment,
@@ -66,6 +67,9 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, h_thr:
     data = sorted(glob.glob(datapath+"00-data/*.fits"))
     # Set the number of workers
     number_of_workers = numpy.min([len(data), cores])
+    # Ensure at least one worker
+    if number_of_workers < 1:
+        number_of_workers = 1
     print(color.RED + color.BOLD + f"Number of cores used: {number_of_workers}" + color.END)
     start = time.time()
     # Clean up
@@ -92,6 +96,10 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, h_thr:
     print(color.RED + color.BOLD + "Starting tabulation" + color.END)
     asc_files = sorted(glob.glob(os.path.join(datapath,"03-assoc/*.fits")))
     src_files = sorted(glob.glob(os.path.join(datapath+"00-data/*.fits")))
+    if len(asc_files) == 0 or len(src_files) == 0:
+        print(color.RED + color.BOLD + "No association or source files found for tabulation." + color.END)
+        return
+
     if doppler:
         doppler_files = sorted(glob.glob(os.path.join(datapath+"00b-doppler/*.fits")))
         # Give an error if the path is not found
@@ -120,9 +128,11 @@ def housekeeping(datapath: str) -> None:
     Ensures the existence and proper state of specific directories and their contents within a given data path.
 
     This function performs the following tasks:
+
     1. Checks if the directories "01-mask", "02-id", and "03-assoc" exist within the specified datapath.
        If none of these directories exist, it creates them.
     2. If the directories exist, it checks for files within them.
+
        - If all three directories contain the same number of files and are not empty, it prompts a warning
          message indicating that the directories are not empty and proceeds to delete all files in these directories.
        - If the number of files in "01-mask" and "02-id" do not match, it deletes all files in these two directories.
@@ -289,6 +299,7 @@ def detection(img: numpy.ndarray, l_thr: float, h_thr: float, min_distance:int,s
 
     Returns:
     Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:
+
         - If sign is "both": Returns a tuple of three elements:
             labels (numpy.ndarray): The combined labels of detected features.
             coords_pos (numpy.ndarray): Coordinates of positive features.
@@ -382,6 +393,7 @@ def process_image(datapath: str, data: str, l_thr: float, h_thr: float, min_dist
     Processes an astronomical image by detecting and identifying clumps within it, and saves the results.
 
     This function performs the following steps:
+
     1. Reads the input FITS image file.
     2. Detects clumps in the image using the specified detection parameters.
     3. Saves the detected clumps to the "01-mask" directory.
@@ -645,7 +657,7 @@ def associate(datapath: str, verbose:bool=False, number_of_workers:int=None) -> 
     os.makedirs(datapath+"temp0", exist_ok=True)
     # divide id_data in subgroups of 2 frames, in case of odd number of frames, the last frame is kept alone
     subgroups = [id_data[i:i+2] for i in range(0, len(id_data), 2)]
-    if len(subgroups[-1]) == 1:
+    if len(subgroups) > 0 and len(subgroups[-1]) == 1:
         img = astropy.io.fits.getdata(subgroups[-1][0], memmap=False)
         img = img.reshape(1, img.shape[0], img.shape[1])
         astropy.io.fits.writeto(datapath+f"temp{round}/{subgroups[-1][0].split(os.sep)[-1]}", img, overwrite=True)
@@ -668,7 +680,7 @@ def associate(datapath: str, verbose:bool=False, number_of_workers:int=None) -> 
             break
         # divide id_data in subgroups of 2 frames, in case of odd number of frames, the last frame is kept alone
         subgroups = [data[i:i+2] for i in range(0, len(data), 2)]
-        if len(subgroups[-1]) == 1:
+        if len(subgroups) > 0 and len(subgroups[-1]) == 1:
             img = astropy.io.fits.getdata(subgroups[-1][0], memmap=False)
             img = img.reshape(img.shape[0], img.shape[1], img.shape[2])
             astropy.io.fits.writeto(datapath+f"temp{round}/{subgroups[-1][0].split(os.sep)[-1]}", img, overwrite=True)
@@ -681,7 +693,13 @@ def associate(datapath: str, verbose:bool=False, number_of_workers:int=None) -> 
         pool.close()
         pool.join()
 
-    data = astropy.io.fits.getdata(sorted(glob.glob(datapath+f"temp{round-1}/*.fits"))[0], memmap=False)
+    # Check if there are any results to process
+    final_files = sorted(glob.glob(datapath+f"temp{round-1}/*.fits"))
+    if not final_files:
+        print(color.RED + color.BOLD + "No associated files found." + color.END)
+        return
+
+    data = astropy.io.fits.getdata(final_files[0], memmap=False)
     # export each frame of the data cube as a fits file in 03_assoc
     for i in range(data.shape[0]):
         astropy.io.fits.writeto(datapath+f"03-assoc/{i:04d}.fits", data[i, :, :], overwrite=True)
@@ -715,6 +733,7 @@ def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: 
     pandas.DataFrame
         Summary table with one row per tracked blob:
         label, Lifetime, arrays of X, Y, Area, Flux, Frames, ecc, Vx, Vy, stdVx, stdVy.
+
     """
 
     # Build coordinate grids once

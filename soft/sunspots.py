@@ -86,9 +86,11 @@ def housekeeping(datapath: str) -> None:
     Ensures the existence and proper state of specific directories and their contents within a given data path.
 
     This function performs the following tasks:
+
     1. Checks if the directories "01-mask", "02-id", and "03-assoc" exist within the specified datapath.
        If none of these directories exist, it creates them.
     2. If the directories exist, it checks for files within them.
+
        - If all three directories contain the same number of files and are not empty, it prompts a warning
          message indicating that the directories are not empty and proceeds to delete all files in these directories.
        - If the number of files in "01-mask" and "02-id" do not match, it deletes all files in these two directories.
