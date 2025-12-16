@@ -10,9 +10,10 @@ import matplotlib.pyplot
 import matplotlib.animation
 import tqdm 
 import multiprocessing
+import concurrent.futures
 import time
 from typing import Union
-from pathos.multiprocessing import ProcessingPool
+# from pathos.multiprocessing import ProcessingPool
 
 class color:
    PURPLE = '\033[95m'
@@ -74,8 +75,10 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, h_thr:
     # Start the detection and identification
     print(color.RED + color.BOLD + "Detecting features..." + color.END)
 
-    with multiprocessing.Pool(number_of_workers) as p:
-        p.starmap(process_image, [(datapath, img, l_thr, h_thr, min_distance, sign, separation, min_size, verbose) for img in data])
+    with concurrent.futures.ThreadPoolExecutor(max_workers=number_of_workers) as executor:
+        futures = [executor.submit(process_image, datapath, img, l_thr, h_thr, min_distance, sign, separation, min_size, verbose) for img in data]
+        for future in concurrent.futures.as_completed(futures):
+            future.result()
 
     # Assign unique IDs
     print(color.RED + color.BOLD + "Assigning unique IDs..." + color.END)
@@ -523,76 +526,48 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
     file2 = cube2[0] if cube2.ndim > 2 else cube2
 
 
-    unique_id_1 = numpy.unique(file1)
-    unique_id_1 = unique_id_1[unique_id_1 != 0]
-    # create two empty 1D arrays to store the forward_1 and forward_2 matches
-    forward_matches_1 = numpy.empty(0)
-    forward_matches_2 = numpy.empty(0)
-    for id_1 in tqdm.tqdm(unique_id_1, leave=False, desc="Forward matching"):
-        try:
-            wh1 = numpy.where(file1 == id_1)
-            set1 = numpy.stack((wh1[0], wh1[1])).T
-        except:
-            print(f"Error in forward matching for id_1: {id_1}. Skipping.")
-            print(f"Frame was {fname1.split(os.sep)[-1]} and round was {round}")
-            raise ValueError("Error in forward matching. Check the input files.")
-        max_intersection_size = 0
-        # create a mask of the element of the first image in the second image
-        temp_mask = numpy.where(file1 == id_1, 1, 0)
-        temp_file2 = file2 * temp_mask
-        unique_id_2 = numpy.unique(temp_file2)
-        unique_id_2 = unique_id_2[unique_id_2 != 0]
-        for id_2 in unique_id_2:
-            wh2 = numpy.where(file2 == id_2)
-            set2 = numpy.stack((wh2[0], wh2[1])).T
-            temp_intersection_size = len(array_row_intersection(set1, set2))
-            if temp_intersection_size > max_intersection_size:
-                max_intersection_size = temp_intersection_size
-                best_match_1 = id_1
-                best_match_2 = id_2
-        if max_intersection_size != 0:
-            forward_matches_1 = numpy.append(forward_matches_1, best_match_1)
-            forward_matches_2 = numpy.append(forward_matches_2, best_match_2)
+    # Flatten both images
+    f1 = file1.ravel().astype(file1.dtype.newbyteorder('='))
+    f2 = file2.ravel().astype(file2.dtype.newbyteorder('='))
 
-    unique_id_2 = numpy.unique(file2)
-    unique_id_2 = unique_id_2[unique_id_2 != 0]
-    backward_matches_1 = numpy.empty(0)
-    backward_matches_2 = numpy.empty(0)
-    for id_2 in tqdm.tqdm(unique_id_2, leave=False, desc="Backward matching"):
-        try:
-            wh2 = numpy.where(file2 == id_2)
-            set2 = numpy.stack((wh2[0], wh2[1])).T
-        except:
-            print(f"Error in backward matching for id_2: {id_2}. Skipping.")
-            print(f"Frame was {fname2.split(os.sep)[-1]} and round was {round}")
-            raise ValueError("Error in backward matching. Check the input files.")
-        max_intersection_size = 0
-        # create a mask of the element of the first image in the second image
-        temp_mask = numpy.where(file2 == id_2, 1, 0)
-        temp_file1 = file1 * temp_mask
-        unique_id_1 = numpy.unique(temp_file1)
-        unique_id_1 = unique_id_1[unique_id_1 != 0]
-        for id_1 in unique_id_1:
-            wh1 = numpy.where(file1 == id_1)
-            set1 = numpy.stack((wh1[0], wh1[1])).T
-            temp_intersection_size = len(array_row_intersection(set1, set2))
-            if temp_intersection_size > max_intersection_size:
-                max_intersection_size = temp_intersection_size
-                best_match_1 = id_1
-                best_match_2 = id_2
-        if max_intersection_size != 0:
-            backward_matches_1 = numpy.append(backward_matches_1, best_match_1)
-            backward_matches_2 = numpy.append(backward_matches_2, best_match_2)
+    # Filter out background
+    mask = (f1 != 0) & (f2 != 0)
+    f1 = f1[mask]
+    f2 = f2[mask]
 
-    # consider only the matches that are mutual
     mutual_matches_1 = numpy.empty(0)
     mutual_matches_2 = numpy.empty(0)
-    for kk in tqdm.tqdm(range(len(forward_matches_1)), leave=False, desc="Mutual matching"):
-        if forward_matches_1[kk] in backward_matches_1 and forward_matches_2[kk] in backward_matches_2:
-            fwm1 = forward_matches_1[kk]
-            fwm2 = forward_matches_2[kk]
-            mutual_matches_1 = numpy.append(mutual_matches_1, fwm1)
-            mutual_matches_2 = numpy.append(mutual_matches_2, fwm2)
+
+    if len(f1) > 0:
+        # Create a DataFrame for efficient grouping
+        df = pandas.DataFrame({'id1': f1, 'id2': f2})
+
+        # Count intersections for each pair (id1, id2)
+        # This replaces the pixel-by-pixel intersection logic
+        counts = df.groupby(['id1', 'id2']).size().reset_index(name='count')
+
+        # --- Forward Matching ---
+        # For each id1, find the id2 with the maximum count
+        # Sort by count descending, then by id2 ascending (to break ties deterministically like the original code)
+        counts_sorted = counts.sort_values(['count', 'id2'], ascending=[False, True])
+
+        # Keep the first occurrence for each id1 (which is the max count)
+        forward = counts_sorted.drop_duplicates(subset=['id1'], keep='first')
+
+        # --- Backward Matching ---
+        # For each id2, find the id1 with the maximum count
+        # Re-sort for backward matching if necessary?
+        # Actually, if we sort by count desc, then id1 ascending, we mimic the behavior for backward
+        counts_sorted_back = counts.sort_values(['count', 'id1'], ascending=[False, True])
+        backward = counts_sorted_back.drop_duplicates(subset=['id2'], keep='first')
+
+        # --- Mutual Matching ---
+        # Merge forward and backward results on both id1 and id2
+        mutual = pandas.merge(forward, backward, on=['id1', 'id2'])
+
+        mutual_matches_1 = mutual['id1'].values
+        mutual_matches_2 = mutual['id2'].values
+
     
     for idx in tqdm.tqdm(range(len(mutual_matches_1)), leave=False, desc="Replacing"):
         numpy.place(cube2, cube2 == mutual_matches_2[idx], mutual_matches_1[idx])
@@ -652,11 +627,10 @@ def associate(datapath: str, verbose:bool=False, number_of_workers:int=None) -> 
         subgroups = subgroups[:-1]
     # parallelize the association by using the multiprocessing module on each subgroup
     print(color.RED + color.BOLD + "Starting the first round of association" + color.END)
-    args = [(subgroup[0], subgroup[1], round, datapath, verbose) for subgroup in subgroups]
-    pool = multiprocessing.Pool(processes=number_of_workers)
-    results = pool.starmap(back_and_forth_matching_PARALLEL, args)
-    pool.close()
-    pool.join()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=number_of_workers) as executor:
+        futures = [executor.submit(back_and_forth_matching_PARALLEL, subgroup[0], subgroup[1], round, datapath, verbose) for subgroup in subgroups]
+        for future in concurrent.futures.as_completed(futures):
+            future.result()
 
     max_iter = 10
     # subsequent rounds of association
@@ -675,11 +649,10 @@ def associate(datapath: str, verbose:bool=False, number_of_workers:int=None) -> 
             subgroups = subgroups[:-1]
         
         print(color.RED + color.BOLD + f"Starting the {round+1} round of association" + color.END)
-        args = [(subgroup[0], subgroup[1], round, datapath, verbose) for subgroup in subgroups]
-        pool = multiprocessing.Pool(processes=number_of_workers)
-        results = pool.starmap(back_and_forth_matching_PARALLEL, args)
-        pool.close()
-        pool.join()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=number_of_workers) as executor:
+            futures = [executor.submit(back_and_forth_matching_PARALLEL, subgroup[0], subgroup[1], round, datapath, verbose) for subgroup in subgroups]
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
 
     data = astropy.io.fits.getdata(sorted(glob.glob(datapath+f"temp{round-1}/*.fits"))[0], memmap=False)
     # export each frame of the data cube as a fits file in 03_assoc
@@ -756,8 +729,8 @@ def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: 
         return pandas.DataFrame.from_records(records)
 
     # Parallel execution
-    with ProcessingPool(cores) as p:
-        results = list(p.imap(process_file, range(len(files))))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=cores) as executor:
+        results = list(executor.map(process_file, range(len(files))))
 
     df = pandas.concat(results, ignore_index=True)
 
@@ -864,8 +837,8 @@ def tabulation_parallel_doppler(files: str, filesD: str, filesB: str, dx: float,
     size = numpy.shape(img)
     x_1, y_1 = numpy.meshgrid(numpy.arange(size[1]), numpy.arange(size[0]))
 
-    with ProcessingPool(cores) as p:
-        results = list(p.imap(process_file, range(len(files))))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=cores) as executor:
+        results = list(executor.map(process_file, range(len(files))))
 
     for result in results:
         df = pandas.concat([df, result], ignore_index=False)
