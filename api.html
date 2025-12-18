@@ -1,0 +1,1015 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; SoFT: Solar Feature Tracking 2.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sg_gallery.css?v=d2d258e8" />
+      <link rel="stylesheet" type="text/css" href="_static/sg_gallery-binder.css?v=f4aeca0c" />
+      <link rel="stylesheet" type="text/css" href="_static/sg_gallery-dataframe.css?v=2082cf3c" />
+      <link rel="stylesheet" type="text/css" href="_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=20623aea"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Gallery" href="auto_examples/index.html" />
+    <link rel="prev" title="Welcome to SoFT’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SoFT: Solar Feature Tracking
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#core-modules">Core Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-soft.soft">soft.soft</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.array_row_intersection"><code class="docutils literal notranslate"><span class="pre">array_row_intersection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.associate"><code class="docutils literal notranslate"><span class="pre">associate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.back_and_forth_matching_PARALLEL"><code class="docutils literal notranslate"><span class="pre">back_and_forth_matching_PARALLEL()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.color"><code class="docutils literal notranslate"><span class="pre">color</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.detection"><code class="docutils literal notranslate"><span class="pre">detection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.housekeeping"><code class="docutils literal notranslate"><span class="pre">housekeeping()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.identification"><code class="docutils literal notranslate"><span class="pre">identification()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.img_pre_neg"><code class="docutils literal notranslate"><span class="pre">img_pre_neg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.img_pre_pos"><code class="docutils literal notranslate"><span class="pre">img_pre_pos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.peak_local_max"><code class="docutils literal notranslate"><span class="pre">peak_local_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.process_image"><code class="docutils literal notranslate"><span class="pre">process_image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.tabulation"><code class="docutils literal notranslate"><span class="pre">tabulation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.tabulation_parallel"><code class="docutils literal notranslate"><span class="pre">tabulation_parallel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.tabulation_parallel_doppler"><code class="docutils literal notranslate"><span class="pre">tabulation_parallel_doppler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.track_all"><code class="docutils literal notranslate"><span class="pre">track_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.unique_id"><code class="docutils literal notranslate"><span class="pre">unique_id()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.soft.watershed_routine"><code class="docutils literal notranslate"><span class="pre">watershed_routine()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-soft.largesets">soft.largesets</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.associate_LF"><code class="docutils literal notranslate"><span class="pre">associate_LF()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.back_and_forth_matching_LF"><code class="docutils literal notranslate"><span class="pre">back_and_forth_matching_LF()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.color"><code class="docutils literal notranslate"><span class="pre">color</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.detection_ss"><code class="docutils literal notranslate"><span class="pre">detection_ss()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.housekeeping_LF"><code class="docutils literal notranslate"><span class="pre">housekeeping_LF()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.identification"><code class="docutils literal notranslate"><span class="pre">identification()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.img_pre_neg"><code class="docutils literal notranslate"><span class="pre">img_pre_neg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.img_pre_pos"><code class="docutils literal notranslate"><span class="pre">img_pre_pos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.process_image_ss"><code class="docutils literal notranslate"><span class="pre">process_image_ss()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.simple_labels"><code class="docutils literal notranslate"><span class="pre">simple_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.tabulation_parallel_doppler"><code class="docutils literal notranslate"><span class="pre">tabulation_parallel_doppler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.track_all_LF"><code class="docutils literal notranslate"><span class="pre">track_all_LF()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.largesets.unique_id"><code class="docutils literal notranslate"><span class="pre">unique_id()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-soft.sunspots">soft.sunspots</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.array_row_intersection"><code class="docutils literal notranslate"><span class="pre">array_row_intersection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.associate"><code class="docutils literal notranslate"><span class="pre">associate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.back_and_forth_matching_PARALLEL"><code class="docutils literal notranslate"><span class="pre">back_and_forth_matching_PARALLEL()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.color"><code class="docutils literal notranslate"><span class="pre">color</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.detection_ss"><code class="docutils literal notranslate"><span class="pre">detection_ss()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.housekeeping"><code class="docutils literal notranslate"><span class="pre">housekeeping()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.identification"><code class="docutils literal notranslate"><span class="pre">identification()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.img_pre_neg"><code class="docutils literal notranslate"><span class="pre">img_pre_neg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.img_pre_pos"><code class="docutils literal notranslate"><span class="pre">img_pre_pos()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.process_image_ss"><code class="docutils literal notranslate"><span class="pre">process_image_ss()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.simple_labels"><code class="docutils literal notranslate"><span class="pre">simple_labels()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.tabulation_parallel"><code class="docutils literal notranslate"><span class="pre">tabulation_parallel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.tabulation_parallel_doppler"><code class="docutils literal notranslate"><span class="pre">tabulation_parallel_doppler()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.track_sunspots"><code class="docutils literal notranslate"><span class="pre">track_sunspots()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.sunspots.unique_id"><code class="docutils literal notranslate"><span class="pre">unique_id()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-soft.extras">soft.extras</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#soft.extras.amp_map"><code class="docutils literal notranslate"><span class="pre">amp_map()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.extras.color"><code class="docutils literal notranslate"><span class="pre">color</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.extras.extrusion"><code class="docutils literal notranslate"><span class="pre">extrusion()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.extras.follow_video"><code class="docutils literal notranslate"><span class="pre">follow_video()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.extras.freq_map"><code class="docutils literal notranslate"><span class="pre">freq_map()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.extras.get_roi"><code class="docutils literal notranslate"><span class="pre">get_roi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#soft.extras.trackvideo"><code class="docutils literal notranslate"><span class="pre">trackvideo()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="auto_examples/index.html">Gallery</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SoFT: Solar Feature Tracking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-soft">
+<span id="api-reference"></span><h1>API Reference<a class="headerlink" href="#module-soft" title="Link to this heading"></a></h1>
+<section id="core-modules">
+<h2>Core Modules<a class="headerlink" href="#core-modules" title="Link to this heading"></a></h2>
+<section id="module-soft.soft">
+<span id="soft-soft"></span><h3>soft.soft<a class="headerlink" href="#module-soft.soft" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.array_row_intersection">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">array_row_intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/soft.html#array_row_intersection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.array_row_intersection" title="Link to this definition"></a></dt>
+<dd><p>Finds the intersection of rows between two 2D numpy arrays.</p>
+<p>This function identifies rows that are present in both input arrays <cite>a</cite> and <cite>b</cite> and returns the rows from <cite>a</cite>
+that are also in <cite>b</cite>. The function is optimized for performance using numpy operations.</p>
+<p>Parameters:
+a (numpy.ndarray): A 2D numpy array.
+b (numpy.ndarray): A 2D numpy array.</p>
+<p>Returns:
+numpy.ndarray: A 2D numpy array containing the rows from <cite>a</cite> that are also present in <cite>b</cite>.</p>
+<p>Note:
+This function is adapted from a solution provided by Vasilis Lemonidis on Stack Overflow.
+All credit goes to the original author. Source: <a class="reference external" href="https://stackoverflow.com/a/40600991">https://stackoverflow.com/a/40600991</a></p>
+<p>Example:
+a = np.array([[1, 2], [3, 4], [5, 6]])
+b = np.array([[3, 4], [7, 8]])
+result = array_row_intersection(a, b)
+# result will be array([[3, 4]])</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.associate">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">associate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_of_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/soft.html#associate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.associate" title="Link to this definition"></a></dt>
+<dd><p>Perform association of FITS files using parallel processing.</p>
+<p>This function processes FITS files in <cite>datapath/02-id</cite> directory, performing association
+using the <cite>back_and_forth_matching_PARALLEL</cite> function. It divides the data into subgroups,
+processes each subgroup in parallel using multiprocessing, and saves the associated results
+in <cite>datapath/03-assoc</cite> directory.</p>
+<p>Parameters:
+datapath (str): The base directory path containing the data.
+verbose (bool): set to true to print additional informations.
+number_of_workers (int): number of workers for the parallel work</p>
+<p>Returns:
+None</p>
+<p>Note:
+This function assumes the presence of necessary directories (<cite>02-id</cite> and <cite>03-assoc</cite>) and
+uses multiprocessing for parallelization. It also assumes the availability of <cite>back_and_forth_matching_PARALLEL</cite>
+function and <cite>color</cite> for colored console output.</p>
+<p>Example:
+associate(“/path/to/data/”)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.back_and_forth_matching_PARALLEL">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">back_and_forth_matching_PARALLEL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/soft.html#back_and_forth_matching_PARALLEL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.back_and_forth_matching_PARALLEL" title="Link to this definition"></a></dt>
+<dd><p>Performs parallel forward and backward matching of unique IDs between two FITS files.</p>
+<p>This function reads two FITS files, performs forward and backward matching of unique IDs
+based on the largest intersection of pixel coordinates, and saves the modified second FITS file.</p>
+<p>Parameters:
+fname1 (str): File path to the first FITS file.
+fname2 (str): File path to the second FITS file.
+round (int): Round number or identifier for the current processing round.
+datapath (str): Directory path where temporary and output files will be saved.</p>
+<p>Returns:
+None</p>
+<p>Note:
+This function assumes <cite>array_row_intersection</cite> function is defined elsewhere in your code.
+It uses tqdm for progress monitoring and assumes numpy arrays for file operations.</p>
+<p>Example:
+back_and_forth_matching_PARALLEL(‘file1.fits’, ‘file2.fits’, 1, ‘/path/to/data/’)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="soft.soft.color">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">color</span></span><a class="reference internal" href="_modules/soft/soft.html#color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.color" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.BLUE">
+<span class="sig-name descname"><span class="pre">BLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#soft.soft.color.BLUE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.BOLD">
+<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#soft.soft.color.BOLD" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.CYAN">
+<span class="sig-name descname"><span class="pre">CYAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[96m'</span></em><a class="headerlink" href="#soft.soft.color.CYAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.DARKCYAN">
+<span class="sig-name descname"><span class="pre">DARKCYAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[36m'</span></em><a class="headerlink" href="#soft.soft.color.DARKCYAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.END">
+<span class="sig-name descname"><span class="pre">END</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#soft.soft.color.END" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.GREEN">
+<span class="sig-name descname"><span class="pre">GREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#soft.soft.color.GREEN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.PURPLE">
+<span class="sig-name descname"><span class="pre">PURPLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#soft.soft.color.PURPLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.RED">
+<span class="sig-name descname"><span class="pre">RED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#soft.soft.color.RED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.UNDERLINE">
+<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#soft.soft.color.UNDERLINE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.soft.color.YELLOW">
+<span class="sig-name descname"><span class="pre">YELLOW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#soft.soft.color.YELLOW" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.detection">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">detection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/soft/soft.html#detection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.detection" title="Link to this definition"></a></dt>
+<dd><p>Detects features in an image using a threshold and watershed algorithm based on the specified sign of features.</p>
+<p>This function processes an input image to detect features either of positive values, negative values, or both.
+The detection is based on thresholding and the watershed algorithm, which can be applied with or without separation.</p>
+<p>Parameters:
+img (numpy.ndarray): The input image to process.
+l_thr (int): The threshold value for detection.
+min_distance (int): The minimum distance between features for the watershed algorithm.
+sign (str, optional): Specifies the type of features to detect. Options are “both”, “pos”, or “neg”.</p>
+<blockquote>
+<div><p>Default is “both”.</p>
+</div></blockquote>
+<p>separation (bool, optional): If True, applies separation in the watershed routine. Default is False.</p>
+<p>Returns:
+Union[tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray], tuple[numpy.ndarray, numpy.ndarray]]:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>If sign is “both”: Returns a tuple of three elements:</dt><dd><p>labels (numpy.ndarray): The combined labels of detected features.
+coords_pos (numpy.ndarray): Coordinates of positive features.
+coords_neg (numpy.ndarray): Coordinates of negative features.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>If sign is “pos” or “neg”: Returns a tuple of two elements:</dt><dd><p>labels (numpy.ndarray): The labels of detected features.
+coords (numpy.ndarray): Coordinates of the detected features.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>Raises:
+ValueError: If sign is not “both”, “pos”, or “neg”.</p>
+<p>Example:
+labels, coords_pos, coords_neg = detection(img, l_thr=50, min_distance=10, sign=”both”, separation=True)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.housekeeping">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">housekeeping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/soft.html#housekeeping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.housekeeping" title="Link to this definition"></a></dt>
+<dd><p>Ensures the existence and proper state of specific directories and their contents within a given data path.</p>
+<p>This function performs the following tasks:</p>
+<ol class="arabic simple">
+<li><p>Checks if the directories “01-mask”, “02-id”, and “03-assoc” exist within the specified datapath.
+If none of these directories exist, it creates them.</p></li>
+<li><p>If the directories exist, it checks for files within them.</p>
+<ul class="simple">
+<li><p>If all three directories contain the same number of files and are not empty, it prompts a warning
+message indicating that the directories are not empty and proceeds to delete all files in these directories.</p></li>
+<li><p>If the number of files in “01-mask” and “02-id” do not match, it deletes all files in these two directories.</p></li>
+<li><p>If the directories are empty, it prints a message indicating so.</p></li>
+</ul>
+</li>
+</ol>
+<p>Parameters:
+datapath (str): The path where the directories “01-mask”, “02-id”, and “03-assoc” are located or should be created.</p>
+<p>Note:
+This function assumes the existence of a <cite>color</cite> class with BOLD, RED, GREEN, and END attributes for formatting output.</p>
+<p>Example:
+housekeeping(“/path/to/root/data/folder/”)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.identification">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">identification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/soft.html#identification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.identification" title="Link to this definition"></a></dt>
+<dd><p>Identifies and filters clumps in the input label array based on a minimum size threshold.</p>
+<p>This function processes the input label array, retaining only those clumps (connected components) that meet
+the specified minimum size. Clumps smaller than the minimum size are removed (set to zero).</p>
+<p>Parameters:
+labels (numpy.ndarray): The input array of labels representing different clumps.
+min_size (int): The minimum size (number of pixels) a clump must have to be retained.</p>
+<p>Returns:
+numpy.ndarray: The filtered label array with only clumps meeting the minimum size retained.</p>
+<p>Raises:
+ValueError: If no clumps survive the identification process.</p>
+<p>Note:
+Future versions may include a “verbose” option to print the number of clumps removed.</p>
+<p>Example:
+filtered_labels = identification(labels, min_size=50)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.img_pre_neg">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">img_pre_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/soft.html#img_pre_neg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.img_pre_neg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.img_pre_pos">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">img_pre_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/soft.html#img_pre_pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.img_pre_pos" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.peak_local_max">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">peak_local_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_thr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/soft.html#peak_local_max"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.peak_local_max" title="Link to this definition"></a></dt>
+<dd><p>Detect local maxima (or minima) in an image while enforcing a minimum
+distance between detected peaks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> (<em>ndarray</em>) – Input image (2D).</p></li>
+<li><p><strong>min_dist</strong> (<em>int</em><em>, </em><em>optional</em>) – Minimum allowed Euclidean distance between detected peaks. Default is 5.</p></li>
+<li><p><strong>h_thr</strong> (<em>float</em><em>, </em><em>optional</em>) – Threshold value for preprocessing peaks. Default is 0.5.</p></li>
+<li><p><strong>sign</strong> (<em>{&quot;pos&quot;</em><em>, </em><em>&quot;neg&quot;}</em>) – Whether to detect positive (“pos”) or negative (“neg”) peaks.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>centroids</strong> – Array of (row, col) centroid coordinates of detected peaks.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ndarray of shape (N, 2)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.process_image">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">process_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/soft.html#process_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.process_image" title="Link to this definition"></a></dt>
+<dd><p>Processes an astronomical image by detecting and identifying clumps within it, and saves the results.</p>
+<p>This function performs the following steps:</p>
+<ol class="arabic simple">
+<li><p>Reads the input FITS image file.</p></li>
+<li><p>Detects clumps in the image using the specified detection parameters.</p></li>
+<li><p>Saves the detected clumps to the “01-mask” directory.</p></li>
+<li><p>Identifies and filters clumps based on the minimum size.</p></li>
+<li><p>Saves the filtered clumps to the “02-id” directory.</p></li>
+</ol>
+<p>Parameters:
+datapath (str): The path where the results will be saved.
+data (str): The path to the input FITS image file.
+l_thr (int): The threshold value for clump detection.
+min_distance (int): The minimum distance between detected clumps.
+sign (str, optional): Specifies the type of clumps to detect. Options are “both”, “pos”, or “neg”.</p>
+<blockquote>
+<div><p>Default is “both”.</p>
+</div></blockquote>
+<p>separation (bool, optional): If True, applies separation in the detection routine. Default is True.
+min_size (int, optional): The minimum size (number of pixels) a clump must have to be retained. Default is 4.</p>
+<p>Returns:
+None</p>
+<p>Example:
+process_image(“/path/to/data/”, “image.fits”, l_thr=50, min_distance=10, sign=”both”, separation=True, min_size=4)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.tabulation">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">tabulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesB</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minliftime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/soft/soft.html#tabulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.tabulation" title="Link to this definition"></a></dt>
+<dd><p>Analyzes a series of FITS files and their corresponding background files to extract
+properties of labeled regions across frames, merge common labels, compute lifetime,
+and calculate velocities.</p>
+<p>Parameters:
+- files (list of str): List of paths to FITS files containing labeled regions.
+- filesB (list of str): List of paths to background FITS files corresponding to ‘files’.
+- dx (float): Pixel size in the x-direction (spatial resolution).
+- dt (float): Time interval between frames (temporal resolution).
+- minliftime (int, optional): Minimum lifetime (number of frames a label persists) to consider. Default is 4.</p>
+<p>Returns:
+- pd.DataFrame: DataFrame containing tabulated data with columns:</p>
+<blockquote>
+<div><p>[‘label’, ‘Lifetime’, ‘X’, ‘Y’, ‘Area’, ‘Flux’, ‘Frames’, ‘Vx’, ‘Vy’, ‘stdVx’, ‘stdVy’].</p>
+</div></blockquote>
+<p>Raises:
+- ValueError: If there are inconsistencies in the data, such as non-consecutive frames or multiple labels in a group.</p>
+<p>Notes:
+- The function assumes that ‘files’ and ‘filesB’ are aligned, i.e., each entry in ‘files’ corresponds to the</p>
+<blockquote>
+<div><p>same index in ‘filesB’ for background data.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>‘dx’ and ‘dt’ are used to compute velocities (‘Vx’, ‘Vy’) based on numerical differentiation of positions (‘X’, ‘Y’).</p></li>
+</ul>
+<p>PSA: This docstring has been written with the aid of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.tabulation_parallel">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">tabulation_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesB</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minliftime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/soft/soft.html#tabulation_parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.tabulation_parallel" title="Link to this definition"></a></dt>
+<dd><p>Process segmentation maps (files) and source FITS files (filesB) in parallel.
+Extracts blob properties (centroid, area, flux, eccentricity), tracks them across frames,
+and computes velocities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>files</strong> (<em>list</em>) – List of segmentation FITS files (each pixel labeled by blob ID).</p></li>
+<li><p><strong>filesB</strong> (<em>list</em>) – List of source FITS files with intensity values.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – Spatial resolution (e.g. arcsec/pixel).</p></li>
+<li><p><strong>dt</strong> (<em>float</em>) – Temporal resolution (frame cadence).</p></li>
+<li><p><strong>cores</strong> (<em>int</em>) – Number of CPU cores for parallel processing.</p></li>
+<li><p><strong>minliftime</strong> (<em>int</em><em>, </em><em>optional</em>) – Minimum number of frames a blob must persist to be included (default=4).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Summary table with one row per tracked blob:
+label, Lifetime, arrays of X, Y, Area, Flux, Frames, ecc, Vx, Vy, stdVx, stdVy.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.tabulation_parallel_doppler">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">tabulation_parallel_doppler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesD</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesB</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minliftime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/soft/soft.html#tabulation_parallel_doppler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.tabulation_parallel_doppler" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.track_all">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">track_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doppler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/soft.html#track_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.track_all" title="Link to this definition"></a></dt>
+<dd><p>Executes a pipeline for feature detection, identification, association, tabulation, and data storage based on astronomical FITS files.</p>
+<p>Parameters:
+- datapath (str): Path to the main data directory.
+- cores (int): Number of CPU cores to utilize for parallel processing.
+- min_distance (int): Minimum distance between features for detection.
+- l_thr (int): Threshold value for feature detection.
+- min_size (int): Minimum size threshold for identified features.
+- dx (float): Pixel size in the x-direction (spatial resolution) for velocity computation.
+- dt (float): Time interval between frames (temporal resolution) for velocity computation.
+- sign (str): Sign convention for feature detection (‘positive’, ‘negative’, or ‘both’).
+- separation (int): Separation threshold for feature detection.
+- verbose (bool, optional): If True, displays detailed progress information. Default is False.
+- doppler (bool, optional): If True, includes Doppler files for tabulation. Default is False.</p>
+<p>Returns:
+- None: Outputs are saved as FITS files and a JSON file containing tabulated data.</p>
+<p>Raises:
+- FileNotFoundError: If there are issues with file paths or missing directories.</p>
+<p>Notes:</p>
+<ul class="simple">
+<li><p>This function coordinates the detection, identification, association, tabulation, and storage of astronomical features
+across multiple FITS files in the specified ‘datapath’.</p></li>
+<li><p>The process involves multiple subprocesses, including cleaning up temporary files, feature detection, ID assignment,
+association of features across frames, tabulation of feature properties (such as position, area, and flux), and
+saving the resulting tabulated data as a JSON file.</p></li>
+</ul>
+<p>PSA: This docstring has been written with the aid of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.unique_id">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">unique_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/soft.html#unique_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.unique_id" title="Link to this definition"></a></dt>
+<dd><p>Assigns unique IDs to clumps in a list of FITS image files and saves the modified files.</p>
+<p>This function processes each FITS file in the provided list, replacing each unique non-zero clump identifier
+with a globally unique ID. The modified images are saved in the “02-id” directory within the specified datapath.</p>
+<p>Parameters:
+id_data (list): A list of paths to the FITS files to be processed.
+datapath (str): The path where the modified files will be saved.</p>
+<p>Returns:
+None</p>
+<p>Example:
+unique_id([“image1.fits”, “image2.fits”], “/path/to/data/”)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.soft.watershed_routine">
+<span class="sig-prename descclassname"><span class="pre">soft.soft.</span></span><span class="sig-name descname"><span class="pre">watershed_routine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/soft/soft.html#watershed_routine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.soft.watershed_routine" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-soft.largesets">
+<span id="soft-largesets"></span><h3>soft.largesets<a class="headerlink" href="#module-soft.largesets" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.associate_LF">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">associate_LF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_n1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matches_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matches_2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#associate_LF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.associate_LF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.back_and_forth_matching_LF">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">back_and_forth_matching_LF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#back_and_forth_matching_LF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.back_and_forth_matching_LF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="soft.largesets.color">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">color</span></span><a class="reference internal" href="_modules/soft/largesets.html#color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.color" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.BLUE">
+<span class="sig-name descname"><span class="pre">BLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#soft.largesets.color.BLUE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.BOLD">
+<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#soft.largesets.color.BOLD" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.CYAN">
+<span class="sig-name descname"><span class="pre">CYAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[96m'</span></em><a class="headerlink" href="#soft.largesets.color.CYAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.DARKCYAN">
+<span class="sig-name descname"><span class="pre">DARKCYAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[36m'</span></em><a class="headerlink" href="#soft.largesets.color.DARKCYAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.END">
+<span class="sig-name descname"><span class="pre">END</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#soft.largesets.color.END" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.GREEN">
+<span class="sig-name descname"><span class="pre">GREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#soft.largesets.color.GREEN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.PURPLE">
+<span class="sig-name descname"><span class="pre">PURPLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#soft.largesets.color.PURPLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.RED">
+<span class="sig-name descname"><span class="pre">RED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#soft.largesets.color.RED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.UNDERLINE">
+<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#soft.largesets.color.UNDERLINE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.largesets.color.YELLOW">
+<span class="sig-name descname"><span class="pre">YELLOW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#soft.largesets.color.YELLOW" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.detection_ss">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">detection_ss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#detection_ss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.detection_ss" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.housekeeping_LF">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">housekeeping_LF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/largesets.html#housekeeping_LF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.housekeeping_LF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.identification">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">identification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#identification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.identification" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.img_pre_neg">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">img_pre_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#img_pre_neg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.img_pre_neg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.img_pre_pos">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">img_pre_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#img_pre_pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.img_pre_pos" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.process_image_ss">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">process_image_ss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/largesets.html#process_image_ss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.process_image_ss" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.simple_labels">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">simple_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#simple_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.simple_labels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.tabulation_parallel_doppler">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">tabulation_parallel_doppler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesD</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesB</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minliftime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/soft/largesets.html#tabulation_parallel_doppler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.tabulation_parallel_doppler" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.track_all_LF">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">track_all_LF</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sign</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">N</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#track_all_LF"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.track_all_LF" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.largesets.unique_id">
+<span class="sig-prename descclassname"><span class="pre">soft.largesets.</span></span><span class="sig-name descname"><span class="pre">unique_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datapath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/largesets.html#unique_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.largesets.unique_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-soft.sunspots">
+<span id="soft-sunspots"></span><h3>soft.sunspots<a class="headerlink" href="#module-soft.sunspots" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.array_row_intersection">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">array_row_intersection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#array_row_intersection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.array_row_intersection" title="Link to this definition"></a></dt>
+<dd><p>Finds the intersection of rows between two 2D numpy arrays.</p>
+<p>This function identifies rows that are present in both input arrays <cite>a</cite> and <cite>b</cite> and returns the rows from <cite>a</cite>
+that are also in <cite>b</cite>. The function is optimized for performance using numpy operations.</p>
+<p>Parameters:
+a (numpy.ndarray): A 2D numpy array.
+b (numpy.ndarray): A 2D numpy array.</p>
+<p>Returns:
+numpy.ndarray: A 2D numpy array containing the rows from <cite>a</cite> that are also present in <cite>b</cite>.</p>
+<p>Note:
+This function is adapted from a solution provided by Vasilis Lemonidis on Stack Overflow.
+All credit goes to the original author. Source: <a class="reference external" href="https://stackoverflow.com/a/40600991">https://stackoverflow.com/a/40600991</a></p>
+<p>Example:
+a = np.array([[1, 2], [3, 4], [5, 6]])
+b = np.array([[3, 4], [7, 8]])
+result = array_row_intersection(a, b)
+# result will be array([[3, 4]])</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.associate">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">associate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#associate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.associate" title="Link to this definition"></a></dt>
+<dd><p>Perform association of FITS files using parallel processing.</p>
+<p>This function processes FITS files in <cite>datapath/02-id</cite> directory, performing association
+using the <cite>back_and_forth_matching_PARALLEL</cite> function. It divides the data into subgroups,
+processes each subgroup in parallel using multiprocessing, and saves the associated results
+in <cite>datapath/03-assoc</cite> directory.</p>
+<p>Parameters:
+datapath (str): The base directory path containing the data.</p>
+<p>Returns:
+None</p>
+<p>Note:
+This function assumes the presence of necessary directories (<cite>02-id</cite> and <cite>03-assoc</cite>) and
+uses multiprocessing for parallelization. It also assumes the availability of <cite>back_and_forth_matching_PARALLEL</cite>
+function and <cite>color</cite> for colored console output.</p>
+<p>Example:
+associate(“/path/to/data/”)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.back_and_forth_matching_PARALLEL">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">back_and_forth_matching_PARALLEL</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">round</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#back_and_forth_matching_PARALLEL"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.back_and_forth_matching_PARALLEL" title="Link to this definition"></a></dt>
+<dd><p>Performs parallel forward and backward matching of unique IDs between two FITS files.</p>
+<p>This function reads two FITS files, performs forward and backward matching of unique IDs
+based on the largest intersection of pixel coordinates, and saves the modified second FITS file.</p>
+<p>Parameters:
+fname1 (str): File path to the first FITS file.
+fname2 (str): File path to the second FITS file.
+round (int): Round number or identifier for the current processing round.
+datapath (str): Directory path where temporary and output files will be saved.</p>
+<p>Returns:
+None</p>
+<p>Note:
+This function assumes <cite>array_row_intersection</cite> function is defined elsewhere in your code.
+It uses tqdm for progress monitoring and assumes numpy arrays for file operations.</p>
+<p>Example:
+back_and_forth_matching_PARALLEL(‘file1.fits’, ‘file2.fits’, 1, ‘/path/to/data/’)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="soft.sunspots.color">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">color</span></span><a class="reference internal" href="_modules/soft/sunspots.html#color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.color" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.BLUE">
+<span class="sig-name descname"><span class="pre">BLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#soft.sunspots.color.BLUE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.BOLD">
+<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#soft.sunspots.color.BOLD" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.CYAN">
+<span class="sig-name descname"><span class="pre">CYAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[96m'</span></em><a class="headerlink" href="#soft.sunspots.color.CYAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.DARKCYAN">
+<span class="sig-name descname"><span class="pre">DARKCYAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[36m'</span></em><a class="headerlink" href="#soft.sunspots.color.DARKCYAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.END">
+<span class="sig-name descname"><span class="pre">END</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#soft.sunspots.color.END" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.GREEN">
+<span class="sig-name descname"><span class="pre">GREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#soft.sunspots.color.GREEN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.PURPLE">
+<span class="sig-name descname"><span class="pre">PURPLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#soft.sunspots.color.PURPLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.RED">
+<span class="sig-name descname"><span class="pre">RED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#soft.sunspots.color.RED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.UNDERLINE">
+<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#soft.sunspots.color.UNDERLINE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.sunspots.color.YELLOW">
+<span class="sig-name descname"><span class="pre">YELLOW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#soft.sunspots.color.YELLOW" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.detection_ss">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">detection_ss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#detection_ss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.detection_ss" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.housekeeping">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">housekeeping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#housekeeping"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.housekeeping" title="Link to this definition"></a></dt>
+<dd><p>Ensures the existence and proper state of specific directories and their contents within a given data path.</p>
+<p>This function performs the following tasks:</p>
+<ol class="arabic simple">
+<li><p>Checks if the directories “01-mask”, “02-id”, and “03-assoc” exist within the specified datapath.
+If none of these directories exist, it creates them.</p></li>
+<li><p>If the directories exist, it checks for files within them.</p>
+<ul class="simple">
+<li><p>If all three directories contain the same number of files and are not empty, it prompts a warning
+message indicating that the directories are not empty and proceeds to delete all files in these directories.</p></li>
+<li><p>If the number of files in “01-mask” and “02-id” do not match, it deletes all files in these two directories.</p></li>
+<li><p>If the directories are empty, it prints a message indicating so.</p></li>
+</ul>
+</li>
+</ol>
+<p>Parameters:
+datapath (str): The path where the directories “01-mask”, “02-id”, and “03-assoc” are located or should be created.</p>
+<p>Note:
+This function assumes the existence of a <cite>color</cite> class with BOLD, RED, GREEN, and END attributes for formatting output.</p>
+<p>Example:
+housekeeping(“/path/to/root/data/folder/”)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.identification">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">identification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#identification"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.identification" title="Link to this definition"></a></dt>
+<dd><p>Identifies and filters clumps in the input label array based on a minimum size threshold.</p>
+<p>This function processes the input label array, retaining only those clumps (connected components) that meet
+the specified minimum size. Clumps smaller than the minimum size are removed (set to zero).</p>
+<p>Parameters:
+labels (numpy.ndarray): The input array of labels representing different clumps.
+min_size (int): The minimum size (number of pixels) a clump must have to be retained.</p>
+<p>Returns:
+numpy.ndarray: The filtered label array with only clumps meeting the minimum size retained.</p>
+<p>Raises:
+ValueError: If no clumps survive the identification process.</p>
+<p>Note:
+Future versions may include a “verbose” option to print the number of clumps removed.</p>
+<p>Example:
+filtered_labels = identification(labels, min_size=50)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.img_pre_neg">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">img_pre_neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#img_pre_neg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.img_pre_neg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.img_pre_pos">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">img_pre_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#img_pre_pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.img_pre_pos" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.process_image_ss">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">process_image_ss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#process_image_ss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.process_image_ss" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.simple_labels">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">simple_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#simple_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.simple_labels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.tabulation_parallel">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">tabulation_parallel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesB</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minliftime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#tabulation_parallel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.tabulation_parallel" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.tabulation_parallel_doppler">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">tabulation_parallel_doppler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesD</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filesB</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minliftime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#tabulation_parallel_doppler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.tabulation_parallel_doppler" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.track_sunspots">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">track_sunspots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_thr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doppler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#track_sunspots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.track_sunspots" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.sunspots.unique_id">
+<span class="sig-prename descclassname"><span class="pre">soft.sunspots.</span></span><span class="sig-name descname"><span class="pre">unique_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datapath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/soft/sunspots.html#unique_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.sunspots.unique_id" title="Link to this definition"></a></dt>
+<dd><p>Assigns unique IDs to clumps in a list of FITS image files and saves the modified files.</p>
+<p>This function processes each FITS file in the provided list, replacing each unique non-zero clump identifier
+with a globally unique ID. The modified images are saved in the “02-id” directory within the specified datapath.</p>
+<p>Parameters:
+id_data (list): A list of paths to the FITS files to be processed.
+datapath (str): The path where the modified files will be saved.</p>
+<p>Returns:
+None</p>
+<p>Example:
+unique_id([“image1.fits”, “image2.fits”], “/path/to/data/”)</p>
+<p>PSA: This docstring has been written with the assistance of AI.</p>
+</dd></dl>
+
+</section>
+<section id="module-soft.extras">
+<span id="soft-extras"></span><h3>soft.extras<a class="headerlink" href="#module-soft.extras" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.extras.amp_map">
+<span class="sig-prename descclassname"><span class="pre">soft.extras.</span></span><span class="sig-name descname"><span class="pre">amp_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minlifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/extras.html#amp_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.extras.amp_map" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="soft.extras.color">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">soft.extras.</span></span><span class="sig-name descname"><span class="pre">color</span></span><a class="reference internal" href="_modules/soft/extras.html#color"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.extras.color" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.BLUE">
+<span class="sig-name descname"><span class="pre">BLUE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[94m'</span></em><a class="headerlink" href="#soft.extras.color.BLUE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.BOLD">
+<span class="sig-name descname"><span class="pre">BOLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[1m'</span></em><a class="headerlink" href="#soft.extras.color.BOLD" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.CYAN">
+<span class="sig-name descname"><span class="pre">CYAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[96m'</span></em><a class="headerlink" href="#soft.extras.color.CYAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.DARKCYAN">
+<span class="sig-name descname"><span class="pre">DARKCYAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[36m'</span></em><a class="headerlink" href="#soft.extras.color.DARKCYAN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.END">
+<span class="sig-name descname"><span class="pre">END</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[0m'</span></em><a class="headerlink" href="#soft.extras.color.END" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.GREEN">
+<span class="sig-name descname"><span class="pre">GREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[92m'</span></em><a class="headerlink" href="#soft.extras.color.GREEN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.PURPLE">
+<span class="sig-name descname"><span class="pre">PURPLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[95m'</span></em><a class="headerlink" href="#soft.extras.color.PURPLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.RED">
+<span class="sig-name descname"><span class="pre">RED</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[91m'</span></em><a class="headerlink" href="#soft.extras.color.RED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.UNDERLINE">
+<span class="sig-name descname"><span class="pre">UNDERLINE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[4m'</span></em><a class="headerlink" href="#soft.extras.color.UNDERLINE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="soft.extras.color.YELLOW">
+<span class="sig-name descname"><span class="pre">YELLOW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'\x1b[93m'</span></em><a class="headerlink" href="#soft.extras.color.YELLOW" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.extras.extrusion">
+<span class="sig-prename descclassname"><span class="pre">soft.extras.</span></span><span class="sig-name descname"><span class="pre">extrusion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">feature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asc_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/extras.html#extrusion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.extras.extrusion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.extras.follow_video">
+<span class="sig-prename descclassname"><span class="pre">soft.extras.</span></span><span class="sig-name descname"><span class="pre">follow_video</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stacked_masks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'follow_video'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/extras.html#follow_video"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.extras.follow_video" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.extras.freq_map">
+<span class="sig-prename descclassname"><span class="pre">soft.extras.</span></span><span class="sig-name descname"><span class="pre">freq_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minlifetime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">15</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'x'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/extras.html#freq_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.extras.freq_map" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.extras.get_roi">
+<span class="sig-prename descclassname"><span class="pre">soft.extras.</span></span><span class="sig-name descname"><span class="pre">get_roi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/soft/extras.html#get_roi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.extras.get_roi" title="Link to this definition"></a></dt>
+<dd><p>Automatically identify the region of interest (ROI) in the image with the most values near zero.</p>
+<p>Parameters:
+img (numpy.ndarray): The input image.
+size (int): The size of the square ROI.</p>
+<p>Returns:
+tuple: A tuple containing the ROI and the bounding box coordinates (i, j).</p>
+<p>PSA: This docstring was written with the aid of AI.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="soft.extras.trackvideo">
+<span class="sig-prename descclassname"><span class="pre">soft.extras.</span></span><span class="sig-name descname"><span class="pre">trackvideo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'video'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">savepath</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/soft/extras.html#trackvideo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#soft.extras.trackvideo" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to SoFT’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="auto_examples/index.html" class="btn btn-neutral float-right" title="Gallery" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michele Berretti.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

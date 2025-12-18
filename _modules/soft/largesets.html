@@ -1,0 +1,542 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>soft.largesets &mdash; SoFT: Solar Feature Tracking 2.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery.css?v=d2d258e8" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-binder.css?v=f4aeca0c" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+      <link rel="stylesheet" type="text/css" href="../../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=20623aea"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            SoFT: Solar Feature Tracking
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../auto_examples/index.html">Gallery</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">SoFT: Solar Feature Tracking</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">soft.largesets</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for soft.largesets</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">astropy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">skimage</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numba</span><span class="w"> </span><span class="kn">import</span> <span class="n">jit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathos.multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProcessingPool</span>
+
+
+<div class="viewcode-block" id="color">
+<a class="viewcode-back" href="../../api.html#soft.largesets.color">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">color</span><span class="p">:</span>
+   <span class="n">PURPLE</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[95m&#39;</span>
+   <span class="n">CYAN</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[96m&#39;</span>
+   <span class="n">DARKCYAN</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[36m&#39;</span>
+   <span class="n">BLUE</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[94m&#39;</span>
+   <span class="n">GREEN</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[92m&#39;</span>
+   <span class="n">YELLOW</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[93m&#39;</span>
+   <span class="n">RED</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[91m&#39;</span>
+   <span class="n">BOLD</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[1m&#39;</span>
+   <span class="n">UNDERLINE</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[4m&#39;</span>
+   <span class="n">END</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[0m&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="track_all_LF">
+<a class="viewcode-back" href="../../api.html#soft.largesets.track_all_LF">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">track_all_LF</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">cores</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">,</span> <span class="n">sign</span><span class="p">,</span> <span class="n">m_size</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="c1"># create a large datasets pipeline for SoFT</span>
+    <span class="c1"># Load the data</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;00-data/*.fits&quot;</span><span class="p">))</span>
+    <span class="c1"># Set the number of workers</span>
+    <span class="n">number_of_workers</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">cores</span><span class="p">])</span>
+    <span class="n">housekeeping_LF</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">number_of_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+        <span class="n">p</span><span class="o">.</span><span class="n">starmap</span><span class="p">(</span><span class="n">process_image_ss</span><span class="p">,</span> <span class="p">[(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">,</span><span class="n">sign</span><span class="p">,</span> <span class="n">m_size</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span> <span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">data</span><span class="p">])</span>
+    <span class="c1"># Assign unique IDs</span>
+    <span class="n">id_data</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;02-id/*.fits&quot;</span><span class="p">))</span>
+    <span class="n">unique_id</span><span class="p">(</span><span class="n">id_data</span><span class="p">,</span> <span class="n">datapath</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+    <span class="c1"># Start the association</span>
+    <span class="n">img_n0</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">id_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="sa">f</span><span class="s2">&quot;03-assoc/</span><span class="si">{</span><span class="n">id_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">img_n0</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Now we can start matching features</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">id_data</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">img_n0</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="sa">f</span><span class="s2">&quot;03-assoc/</span><span class="si">{</span><span class="n">id_data</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ignore_missing_simple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_missing_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">output_verify</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">img_n1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">id_data</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">ignore_missing_simple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_missing_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_blank</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">output_verify</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">matches_1</span><span class="p">,</span> <span class="n">matches_2</span> <span class="o">=</span> <span class="n">back_and_forth_matching_LF</span><span class="p">(</span><span class="n">img_n0</span><span class="p">,</span> <span class="n">img_n1</span><span class="p">)</span>
+        <span class="n">img_assoc</span> <span class="o">=</span> <span class="n">associate_LF</span><span class="p">(</span><span class="n">img_n1</span><span class="p">,</span> <span class="n">matches_1</span><span class="p">,</span> <span class="n">matches_2</span><span class="p">)</span>
+        <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="sa">f</span><span class="s2">&quot;03-assoc/</span><span class="si">{</span><span class="n">id_data</span><span class="p">[</span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">img_assoc</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+    <span class="n">asc_files_total</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span><span class="s2">&quot;03-assoc/*.fits&quot;</span><span class="p">)))</span>
+    <span class="n">src_files_total</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;00-data/*.fits&quot;</span><span class="p">)))</span>
+    <span class="n">doppler_files_total</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;00b-doppler/*.fits&quot;</span><span class="p">)))</span>
+
+    <span class="c1"># split the files in N different groups</span>
+    <span class="n">asc_files</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">asc_files_total</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+    <span class="n">src_files</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">src_files_total</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+    <span class="n">doppler_files</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array_split</span><span class="p">(</span><span class="n">doppler_files_total</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+
+    <span class="c1"># do tabulation in parallel for each group, saving the results in a dataframe and then merging them, keep track of the N/total so that they can be latwer on ordered and merged</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="sa">f</span><span class="s2">&quot;04-dataframes/dataframe_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.parquet&quot;</span><span class="p">)):</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">tabulation_parallel_doppler</span><span class="p">(</span><span class="n">asc_files</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">doppler_files</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">src_files</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">cores</span><span class="p">)</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="sa">f</span><span class="s2">&quot;04-dataframes/dataframe_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="back_and_forth_matching_LF">
+<a class="viewcode-back" href="../../api.html#soft.largesets.back_and_forth_matching_LF">[docs]</a>
+<span class="nd">@jit</span><span class="p">(</span><span class="n">nopython</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">back_and_forth_matching_LF</span><span class="p">(</span><span class="n">file1</span><span class="p">,</span> <span class="n">file2</span><span class="p">):</span>
+    <span class="n">unique_id_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">file1</span><span class="p">)</span>
+    <span class="n">unique_id_1</span> <span class="o">=</span> <span class="n">unique_id_1</span><span class="p">[</span><span class="n">unique_id_1</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">unique_id_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">file2</span><span class="p">)</span>
+    <span class="n">unique_id_2</span> <span class="o">=</span> <span class="n">unique_id_2</span><span class="p">[</span><span class="n">unique_id_2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># ccreate two empty 1D arrays to store the forward_1 and forward_2 matches</span>
+    <span class="n">forward_matches_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">forward_matches_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">id_1</span> <span class="ow">in</span> <span class="n">unique_id_1</span><span class="p">:</span>
+        <span class="n">wh1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">file1</span> <span class="o">==</span> <span class="n">id_1</span><span class="p">)</span>
+        <span class="n">set1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wh1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wh1</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">max_intersection_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">id_2</span> <span class="ow">in</span> <span class="n">unique_id_2</span><span class="p">:</span>
+            <span class="n">wh2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">file2</span> <span class="o">==</span> <span class="n">id_2</span><span class="p">)</span>
+            <span class="n">set2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wh2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wh2</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">temp_intersection_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">set1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">set2</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">temp_intersection_size</span> <span class="o">&gt;</span> <span class="n">max_intersection_size</span><span class="p">:</span>
+                <span class="n">max_intersection_size</span> <span class="o">=</span> <span class="n">temp_intersection_size</span>
+                <span class="n">best_match_1</span> <span class="o">=</span> <span class="n">id_1</span>
+                <span class="n">best_match_2</span> <span class="o">=</span> <span class="n">id_2</span>
+        <span class="k">if</span> <span class="n">max_intersection_size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">forward_matches_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">forward_matches_1</span><span class="p">,</span> <span class="n">best_match_1</span><span class="p">)</span>
+            <span class="n">forward_matches_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">forward_matches_2</span><span class="p">,</span> <span class="n">best_match_2</span><span class="p">)</span>
+
+    <span class="n">backward_matches_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">backward_matches_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">id_2</span> <span class="ow">in</span> <span class="n">unique_id_2</span><span class="p">:</span>
+        <span class="n">wh2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">file2</span> <span class="o">==</span> <span class="n">id_2</span><span class="p">)</span>
+        <span class="n">set2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wh2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wh2</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">max_intersection_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">id_1</span> <span class="ow">in</span> <span class="n">unique_id_1</span><span class="p">:</span>
+            <span class="n">wh1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">file1</span> <span class="o">==</span> <span class="n">id_1</span><span class="p">)</span>
+            <span class="n">set1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">wh1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wh1</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">temp_intersection_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">set1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">set2</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">temp_intersection_size</span> <span class="o">&gt;</span> <span class="n">max_intersection_size</span><span class="p">:</span>
+                <span class="n">max_intersection_size</span> <span class="o">=</span> <span class="n">temp_intersection_size</span>
+                <span class="n">best_match_1</span> <span class="o">=</span> <span class="n">id_1</span>
+                <span class="n">best_match_2</span> <span class="o">=</span> <span class="n">id_2</span>
+        <span class="k">if</span> <span class="n">max_intersection_size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">backward_matches_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">backward_matches_1</span><span class="p">,</span> <span class="n">best_match_1</span><span class="p">)</span>
+            <span class="n">backward_matches_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">backward_matches_2</span><span class="p">,</span> <span class="n">best_match_2</span><span class="p">)</span>
+
+    <span class="c1"># consider only the matches that are mutual</span>
+    <span class="n">mutual_matches_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">mutual_matches_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">kk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">forward_matches_1</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">forward_matches_1</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="ow">in</span> <span class="n">backward_matches_1</span> <span class="ow">and</span> <span class="n">forward_matches_2</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span> <span class="ow">in</span> <span class="n">backward_matches_2</span><span class="p">:</span>
+            <span class="n">fwm1</span> <span class="o">=</span> <span class="n">forward_matches_1</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span>
+            <span class="n">fwm2</span> <span class="o">=</span> <span class="n">forward_matches_2</span><span class="p">[</span><span class="n">kk</span><span class="p">]</span>
+            <span class="n">mutual_matches_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mutual_matches_1</span><span class="p">,</span> <span class="n">fwm1</span><span class="p">)</span>
+            <span class="n">mutual_matches_2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mutual_matches_2</span><span class="p">,</span> <span class="n">fwm2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mutual_matches_1</span><span class="p">,</span> <span class="n">mutual_matches_2</span></div>
+
+
+<div class="viewcode-block" id="associate_LF">
+<a class="viewcode-back" href="../../api.html#soft.largesets.associate_LF">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">associate_LF</span><span class="p">(</span><span class="n">img_n1</span><span class="p">,</span> <span class="n">matches_1</span><span class="p">,</span> <span class="n">matches_2</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matches_1</span><span class="p">)):</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">place</span><span class="p">(</span><span class="n">img_n1</span><span class="p">,</span> <span class="n">img_n1</span> <span class="o">==</span> <span class="n">matches_2</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">matches_1</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">img_n1</span></div>
+
+
+
+
+<div class="viewcode-block" id="tabulation_parallel_doppler">
+<a class="viewcode-back" href="../../api.html#soft.largesets.tabulation_parallel_doppler">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tabulation_parallel_doppler</span><span class="p">(</span><span class="n">files</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filesD</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filesB</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">cores</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">minliftime</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process_file</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">src_img</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">filesB</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">memmap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">asc_img</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">memmap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">alt_img</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">filesD</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">memmap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">unique_ids</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">asc_img</span><span class="p">)</span>
+        <span class="n">df_temp</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="s2">&quot;Area&quot;</span><span class="p">,</span> <span class="s2">&quot;Flux&quot;</span><span class="p">,</span> <span class="s2">&quot;LOS_V&quot;</span><span class="p">,</span> <span class="s2">&quot;frame&quot;</span><span class="p">,</span> <span class="s2">&quot;ecc&quot;</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">unique_ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">asc_img</span> <span class="o">==</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">Bm</span> <span class="o">=</span> <span class="n">src_img</span> <span class="o">*</span> <span class="n">mask</span>
+            <span class="n">LosV_s</span> <span class="o">=</span> <span class="n">alt_img</span> <span class="o">*</span> <span class="n">mask</span>
+            <span class="n">LosV_s</span><span class="p">[</span><span class="n">LosV_s</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+            <span class="n">Area</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">Flux</span> <span class="o">=</span> <span class="n">Bm</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">Area</span>
+            <span class="n">LosV</span> <span class="o">=</span> <span class="n">LosV_s</span> <span class="c1">#numpy.nanmean(LosV_s)</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="p">((</span><span class="n">mask</span> <span class="o">*</span> <span class="n">x_1</span><span class="p">)</span> <span class="o">*</span> <span class="n">Bm</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">Bm</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">Y</span> <span class="o">=</span> <span class="p">((</span><span class="n">mask</span> <span class="o">*</span> <span class="n">y_1</span><span class="p">)</span> <span class="o">*</span> <span class="n">Bm</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">Bm</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Area</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+            <span class="n">circle</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_1</span> <span class="o">-</span> <span class="n">X</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">y_1</span> <span class="o">-</span> <span class="n">Y</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">&lt;</span> <span class="n">r</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">circle</span> <span class="o">=</span> <span class="n">circle</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">circle</span> <span class="o">=</span> <span class="n">circle</span> <span class="o">*</span> <span class="n">mask</span>
+            <span class="n">Area_circle</span> <span class="o">=</span> <span class="n">circle</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">ecc</span> <span class="o">=</span> <span class="n">Area_circle</span> <span class="o">/</span> <span class="n">Area</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="n">i</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Area</span><span class="p">,</span> <span class="n">Flux</span><span class="p">,</span> <span class="n">LosV</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">ecc</span><span class="p">]],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="s2">&quot;Area&quot;</span><span class="p">,</span> <span class="s2">&quot;Flux&quot;</span><span class="p">,</span> <span class="s2">&quot;LOS_V&quot;</span><span class="p">,</span> <span class="s2">&quot;frame&quot;</span><span class="p">,</span> <span class="s2">&quot;ecc&quot;</span><span class="p">])</span>
+            <span class="n">df_temp</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_temp</span><span class="p">,</span> <span class="n">temp</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df_temp</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="s2">&quot;Area&quot;</span><span class="p">,</span> <span class="s2">&quot;Flux&quot;</span><span class="p">,</span> <span class="s2">&quot;LOS_V&quot;</span><span class="p">,</span> <span class="s2">&quot;frame&quot;</span><span class="p">,</span> <span class="s2">&quot;ecc&quot;</span><span class="p">])</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">filesB</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">memmap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="n">x_1</span><span class="p">,</span> <span class="n">y_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="k">with</span> <span class="n">ProcessingPool</span><span class="p">(</span><span class="n">cores</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">process_file</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">))))</span>
+
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span> <span class="n">result</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Merge the common labels</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+
+    <span class="n">area_tot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">flux_tot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">losv_tot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">X_tot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">Y_tot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">label_tot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">frame_tot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ecc_tot</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+        <span class="n">area_temp</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;Area&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">flux_temp</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;Flux&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">losv_temp</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;LOS_V&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">X_temp</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">Y_temp</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">label_temp</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">frame_temp</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;frame&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">ecc_temp</span> <span class="o">=</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;ecc&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="c1"># Perform some sanity checks</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">area_temp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">flux_temp</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;area and flux have different lengths&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">area_temp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">losv_temp</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;area and losv have different lengths&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">area_temp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_temp</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;area and X have different lengths&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">area_temp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y_temp</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;area and Y have different lengths&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">area_temp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">label_temp</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;area and label have different lengths&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">area_temp</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame_temp</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;area and frame have different lengths&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">label_temp</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;More than one label in the group&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">frame_temp</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Frames are not consecutive&quot;</span><span class="p">)</span>
+
+        <span class="n">area_tot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">area_temp</span><span class="p">)</span>
+        <span class="n">flux_tot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flux_temp</span><span class="p">)</span>
+        <span class="n">losv_tot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">losv_temp</span><span class="p">)</span>
+        <span class="n">X_tot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X_temp</span><span class="p">)</span>
+        <span class="n">Y_tot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Y_temp</span><span class="p">)</span>
+        <span class="n">label_tot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label_temp</span><span class="p">)</span>
+        <span class="n">frame_tot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_temp</span><span class="p">)</span>
+        <span class="n">ecc_tot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ecc_temp</span><span class="p">)</span>
+
+    <span class="n">df_final</span> <span class="o">=</span> <span class="n">pandas</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;Lifetime&quot;</span><span class="p">,</span> <span class="s2">&quot;X&quot;</span><span class="p">,</span> <span class="s2">&quot;Y&quot;</span><span class="p">,</span> <span class="s2">&quot;Area&quot;</span><span class="p">,</span> <span class="s2">&quot;Flux&quot;</span><span class="p">,</span> <span class="s2">&quot;LOS_V&quot;</span><span class="p">,</span> <span class="s2">&quot;Frames&quot;</span><span class="p">,</span> <span class="s2">&quot;ecc&quot;</span><span class="p">])</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">label_tot</span><span class="p">]</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Lifetime&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">frame_tot</span><span class="p">]</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">X_tot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Y_tot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Area&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">area_tot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Flux&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">flux_tot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;LOS_V&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">losv_tot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Frames&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame_tot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;ecc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ecc_tot</span>
+    <span class="n">df_final</span> <span class="o">=</span> <span class="n">df_final</span><span class="p">[</span><span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Lifetime&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">minliftime</span><span class="p">]</span>
+
+    <span class="c1"># Compute the velocities</span>
+    <span class="n">vxtot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">vytot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">stdvxtot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">stdvytot</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_final</span><span class="p">)):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">vx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">/</span> <span class="n">dt</span>
+        <span class="n">vy</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">/</span> <span class="n">dt</span>
+        <span class="n">stdx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">vx</span><span class="p">)</span>
+        <span class="n">stdy</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">vy</span><span class="p">)</span>
+        <span class="n">vxtot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vx</span><span class="p">)</span>
+        <span class="n">vytot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vy</span><span class="p">)</span>
+        <span class="n">stdvxtot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stdx</span><span class="p">)</span>
+        <span class="n">stdvytot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stdy</span><span class="p">)</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Vx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vxtot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;Vy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vytot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;stdVx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stdvxtot</span>
+    <span class="n">df_final</span><span class="p">[</span><span class="s2">&quot;stdVy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stdvytot</span>
+
+    <span class="n">df_final</span> <span class="o">=</span> <span class="n">df_final</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df_final</span></div>
+
+
+
+<div class="viewcode-block" id="img_pre_pos">
+<a class="viewcode-back" href="../../api.html#soft.largesets.img_pre_pos">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">img_pre_pos</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">):</span>
+    <span class="n">img_pos</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">img_pos</span><span class="p">[</span><span class="n">img_pos</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">img_pos</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img_pos</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">img_pos</span><span class="p">[</span><span class="n">img_pos</span> <span class="o">&lt;</span> <span class="n">l_thr</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">img_pos</span></div>
+
+
+<div class="viewcode-block" id="img_pre_neg">
+<a class="viewcode-back" href="../../api.html#soft.largesets.img_pre_neg">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">img_pre_neg</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">):</span>
+    <span class="n">img_neg</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">img_neg</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img_neg</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">img_neg</span><span class="p">[</span><span class="n">img_neg</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">img_neg</span><span class="p">[</span><span class="n">img_neg</span> <span class="o">&lt;</span> <span class="n">l_thr</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">img_neg</span></div>
+
+
+<div class="viewcode-block" id="simple_labels">
+<a class="viewcode-back" href="../../api.html#soft.largesets.simple_labels">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_labels</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="c1"># simple labels rather than too exotic segmentation techniques as we don&#39;t want to risk the code splitting the sunspots&#39; umbra</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">ndimage</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">labels</span></div>
+
+
+
+
+<div class="viewcode-block" id="detection_ss">
+<a class="viewcode-back" href="../../api.html#soft.largesets.detection_ss">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">detection_ss</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">,</span> <span class="n">sign</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">):</span>
+    
+    <span class="n">img</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sign</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+        <span class="n">img_pos</span> <span class="o">=</span> <span class="n">img_pre_pos</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">)</span>
+        <span class="n">img_neg</span> <span class="o">=</span> <span class="n">img_pre_neg</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">)</span>
+        <span class="n">labels_pos</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">simple_labels</span><span class="p">(</span><span class="n">img_pos</span><span class="p">)</span>
+        <span class="n">labels_neg</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">simple_labels</span><span class="p">(</span><span class="n">img_neg</span><span class="p">)</span>
+        <span class="n">labels_neg</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">labels_neg</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels_pos</span> <span class="o">+</span> <span class="n">labels_neg</span>
+    <span class="k">elif</span> <span class="n">sign</span> <span class="o">==</span> <span class="s2">&quot;pos&quot;</span><span class="p">:</span>
+        <span class="n">img_pos</span> <span class="o">=</span> <span class="n">img_pre_pos</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">)</span>
+        <span class="n">labels</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">simple_labels</span><span class="p">(</span><span class="n">img_pos</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sign</span> <span class="o">==</span> <span class="s2">&quot;neg&quot;</span><span class="p">:</span>
+        <span class="n">img_neg</span> <span class="o">=</span> <span class="n">img_pre_neg</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">)</span>
+        <span class="n">labels</span><span class="p">,</span><span class="n">_</span> <span class="o">=</span> <span class="n">simple_labels</span><span class="p">(</span><span class="n">img_neg</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">labels</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;sign must be either &#39;both&#39;, &#39;pos&#39; or &#39;neg&#39;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">labels</span></div>
+
+
+<div class="viewcode-block" id="process_image_ss">
+<a class="viewcode-back" href="../../api.html#soft.largesets.process_image_ss">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_image_ss</span><span class="p">(</span><span class="n">datapath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sign</span><span class="p">,</span> <span class="n">min_size</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">memmap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">detection_ss</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">l_thr</span><span class="p">,</span> <span class="n">sign</span><span class="p">)</span>
+    <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="sa">f</span><span class="s2">&quot;01-mask/</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">identification</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="sa">f</span><span class="s2">&quot;02-id/</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="identification">
+<a class="viewcode-back" href="../../api.html#soft.largesets.identification">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">identification</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">min_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">uid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+    <span class="n">original_number</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">uid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of clumps detected: </span><span class="si">{</span><span class="n">original_number</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">uid</span><span class="p">,</span> <span class="n">leave</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">sz</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sz</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">min_size</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">labels</span> <span class="o">==</span> <span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+            <span class="n">count</span><span class="o">+=</span><span class="mi">1</span>
+
+    <span class="n">num</span> <span class="o">=</span> <span class="n">original_number</span> <span class="o">-</span> <span class="n">count</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of clumps surviving the identification process: </span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No clumps survived the identification process&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Number of clumps surviving the identification process: </span><span class="si">{</span><span class="n">num</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="n">labels</span></div>
+
+
+
+<div class="viewcode-block" id="unique_id">
+<a class="viewcode-back" href="../../api.html#soft.largesets.unique_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unique_id</span><span class="p">(</span><span class="n">id_data</span><span class="p">,</span> <span class="n">datapath</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+
+    <span class="n">u_id_p</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">u_id_n</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">id_data</span><span class="p">):</span>
+        <span class="n">img_n0</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">getdata</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">memmap</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Extract unique non-zero values</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">img_n0</span><span class="p">[</span><span class="n">img_n0</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">ids_p</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="n">ids</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">ids_n</span> <span class="o">=</span> <span class="n">ids</span><span class="p">[</span><span class="n">ids</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Replace each unique value with its corresponding unique ID</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids_p</span><span class="p">:</span>
+            <span class="n">img_n0</span><span class="p">[</span><span class="n">img_n0</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_id_p</span>
+            <span class="n">u_id_p</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ids_n</span><span class="p">:</span>
+            <span class="n">img_n0</span><span class="p">[</span><span class="n">img_n0</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_id_n</span>
+            <span class="n">u_id_n</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="c1"># Write the modified data back to the file</span>
+        <span class="n">astropy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">fits</span><span class="o">.</span><span class="n">writeto</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="s2">&quot;02-id&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)),</span> <span class="n">img_n0</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total number of unique IDs: </span><span class="si">{</span><span class="n">u_id_p</span><span class="o">+</span><span class="nb">abs</span><span class="p">(</span><span class="n">u_id_n</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="housekeeping_LF">
+<a class="viewcode-back" href="../../api.html#soft.largesets.housekeeping_LF">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">housekeeping_LF</span><span class="p">(</span><span class="n">datapath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;01-mask&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;02-id&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;03-assoc&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;04-dataframes&quot;</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;01-mask&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;02-id&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;03-assoc&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;04-dataframes&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">files_mask</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;01-mask/*&quot;</span><span class="p">)</span>
+        <span class="n">files_id</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;02-id/*&quot;</span><span class="p">)</span>
+        <span class="n">files_assoc</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;03-assoc/*&quot;</span><span class="p">)</span>
+        <span class="n">files_dataframes</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">datapath</span><span class="o">+</span><span class="s2">&quot;04-dataframes/*&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files_mask</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">files_id</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">files_assoc</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
+            <span class="k">if</span> <span class="n">response</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_mask</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_id</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_assoc</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_dataframes</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">files_mask</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">files_id</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The number of files in the directories 01-mask and 02-id do not match. Deleting all files.&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_mask</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files_id</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The directories are empty.&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Michele Berretti.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
