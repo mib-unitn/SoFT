@@ -7,7 +7,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='solar_ft',
-    version='2.2.1',
+    version='2.5.1',
     description='A Python lib for Solar Feature Tracking',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -25,6 +25,8 @@ setup(
                       'tqdm',
                       'pathos',
                       'typing',
+                      'EMD-signal',
+                      'sunpy[all]'
                       ],
 
     classifiers=[
