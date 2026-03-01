@@ -266,43 +266,30 @@ def watershed_routine(img: numpy.ndarray, l_thr: float, h_thr: float, min_dist: 
 
     distance = scipy.ndimage.distance_transform_edt(img_low)
 
-    try:
-        coords = peak_local_max(img, min_dist, h_thr, sign)
-    except RuntimeWarning:
-        coords = numpy.empty((0, 2))
-
     if not separation:
-        # ONE seed per low-threshold connected component to prevent
-        # over-segmentation of large, elongated features
+        # Label connected components at the low threshold level
         low_labels = skimage.measure.label(img_low > 0)
-        coord_ints = coords.astype(int) if coords.size > 0 else numpy.empty((0, 2), dtype=int)
-
-        best_coords = []
         all_components = set(numpy.unique(low_labels)) - {0}
-        covered_components = set()
 
-        if coords.size > 0:
-            component_ids = low_labels[coord_ints[:, 0], coord_ints[:, 1]]
-            for comp in numpy.unique(component_ids):
-                if comp == 0:
-                    continue
-                mask_comp = component_ids == comp
-                comp_coords = coords[mask_comp]
-                comp_ints = comp_coords.astype(int)
-                values = distance[comp_ints[:, 0], comp_ints[:, 1]]
-                best_coords.append(comp_coords[numpy.argmax(values)])
-                covered_components.add(comp)
+        if not all_components:
+            return numpy.zeros_like(img_low, dtype=int), numpy.empty((0, 2))
 
-        # Fallback: seed any component missed by the high threshold
-        for comp in all_components - covered_components:
+        # For each low-threshold component, place exactly one seed at the
+        # distance-transform maximum — guaranteed to lie inside the mask
+        best_coords = []
+        for comp in all_components:
             comp_points = numpy.argwhere(low_labels == comp)
             vals = distance[comp_points[:, 0], comp_points[:, 1]]
             best_coords.append(comp_points[numpy.argmax(vals)].astype(float))
 
-        if not best_coords:
-            return numpy.zeros_like(img_low, dtype=int), numpy.empty((0, 2))
-
         coords = numpy.array(best_coords)
+    else:
+        # Original multi-seed behaviour: let peak_local_max find all
+        # high-threshold seeds so the watershed line can separate touching features
+        try:
+            coords = peak_local_max(img, min_dist, h_thr, sign)
+        except RuntimeWarning:
+            return numpy.zeros_like(img_low, dtype=int), numpy.empty((0, 2))
 
     if coords.size == 0:
         return numpy.zeros_like(img_low, dtype=int), numpy.empty((0, 2))
@@ -312,7 +299,8 @@ def watershed_routine(img: numpy.ndarray, l_thr: float, h_thr: float, min_dist: 
     markers, _ = scipy.ndimage.label(mask)
     labels_line = skimage.segmentation.watershed(
         -distance, markers, mask=img_low > 0,
-        compactness=10, watershed_line=separation
+        compactness=10 if separation else 0,
+        watershed_line=separation
     )
     return labels_line, coords
 
