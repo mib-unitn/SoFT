@@ -79,7 +79,7 @@ verbose=False #If True, the code will print a more detailed output of the tracki
 doppler=False # If True, SoFT will also estimate the line-of-sight velocity within the detected features from separate dopplergram files in the 00b-data folder (bool)
 
 
-st.track_all(datapath, cores, min_dist, l_thr, m_size, dx, dt, sign, separation, verbose, doppler)
+st.track_all(datapath, cores, min_dist, l_thr, h_thr, m_size, dx, dt, sign, separation, verbose, doppler)
 ```
 
 
