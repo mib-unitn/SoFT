@@ -25,7 +25,7 @@ class color:
 
 
 
-def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: bool, verbose: bool = False, doppler: bool = False) -> None:
+def track_all(datapath: str, cores: int, l_thr: float, min_size: int, dx: float, dt: float, sign: str, separation: bool, verbose: bool = False, doppler: bool = False) -> None:
 
     """
     Executes a pipeline for feature detection, identification, association, tabulation, and data storage based on astronomical FITS files.
@@ -33,7 +33,6 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     Parameters:
     - datapath (str): Path to the main data directory.
     - cores (int): Number of CPU cores to utilize for parallel processing.
-    - min_distance (int): Minimum distance between features for detection.
     - l_thr (float): Threshold value for feature detection.
     - min_size (int): Minimum size threshold for identified features.
     - dx (float): Pixel size in the x-direction (spatial resolution) for velocity computation.
@@ -58,7 +57,7 @@ def track_all(datapath: str, cores: int, min_distance: int, l_thr: float, min_si
     print(color.RED + color.BOLD + "Detecting features..." + color.END)
 
     with multiprocessing.Pool(number_of_workers) as p:
-        p.starmap(process_image, [(datapath, img, l_thr, min_distance, sign, separation, min_size, verbose) for img in data])
+        p.starmap(process_image, [(datapath, img, l_thr, sign, separation, min_size, verbose) for img in data])
 
     print(color.RED + color.BOLD + "Assigning unique IDs..." + color.END)
     id_data = sorted(glob.glob(datapath + "02-id/*.fits"))
@@ -100,31 +99,21 @@ def housekeeping(datapath: str) -> None:
     Ensures the existence and proper state of specific directories and their
     contents within a given data path.
     """
-    if not os.path.exists(datapath + "01-mask") and not os.path.exists(datapath + "02-id") and not os.path.exists(datapath + "03-assoc"):
-        os.makedirs(datapath + "01-mask")
-        os.makedirs(datapath + "02-id")
-        os.makedirs(datapath + "03-assoc")
+    dirs = ["01-mask", "02-id", "03-assoc"]
+    for d in dirs:
+        os.makedirs(datapath + d, exist_ok=True)
+
+    all_files = []
+    for d in dirs:
+        all_files.extend(glob.glob(datapath + d + "/*"))
+
+    if all_files:
+        print(color.BOLD + color.RED + "WARNING: Output directories are not empty. Deleting files..." + color.END)
+        for f in all_files:
+            os.remove(f)
+        print(color.BOLD + color.GREEN + "Files deleted successfully." + color.END)
     else:
-        files_mask = glob.glob(datapath + "01-mask/*")
-        files_id = glob.glob(datapath + "02-id/*")
-        files_assoc = glob.glob(datapath + "03-assoc/*")
-        if len(files_mask) == len(files_id) == len(files_assoc) != 0:
-            print(color.BOLD + color.RED + "WARNING: The directories are not empty. Deleting files..." + color.END)
-            for file in files_mask:
-                os.remove(file)
-            for file in files_id:
-                os.remove(file)
-            for file in files_assoc:
-                os.remove(file)
-            print(color.BOLD + color.GREEN + "Files deleted successfully." + color.END)
-        elif len(files_mask) != len(files_id):
-            print("The number of files in the directories 01-mask and 02-id do not match. Deleting all files.")
-            for file in files_mask:
-                os.remove(file)
-            for file in files_id:
-                os.remove(file)
-        else:
-            print("The directories are empty.")
+        print("The directories are empty.")
 
 
 def img_pre_pos(img: numpy.ndarray, thr: float) -> numpy.ndarray:
@@ -142,7 +131,29 @@ def img_pre_neg(img: numpy.ndarray, l_thr: float) -> numpy.ndarray:
     return img_neg
 
 
-def watershed_routine(img: numpy.ndarray, l_thr: float, min_dist: int, sign: str, separation: bool = False) -> tuple[numpy.ndarray, numpy.ndarray]:
+def _central_diff_velocity(pos: numpy.ndarray, dx: float, dt: float) -> numpy.ndarray:
+    """Central finite differences with edge clamping.
+
+    Interior points use ``(pos[i+1] - pos[i-1]) / 2``.  The first and last
+    values are clamped to their nearest interior neighbour, avoiding the
+    one-sided difference spike produced by ``numpy.gradient``.
+
+    Returns an array of the same length as *pos*.
+    """
+    pos = numpy.asarray(pos, dtype=numpy.float64)
+    v = numpy.empty_like(pos)
+    if len(pos) >= 3:
+        v[1:-1] = (pos[2:] - pos[:-2]) / 2.0 * dx / dt
+        v[0] = v[1]
+        v[-1] = v[-2]
+    elif len(pos) == 2:
+        v[:] = (pos[1] - pos[0]) * dx / dt
+    else:
+        v[:] = 0.0
+    return v
+
+
+def watershed_routine(img: numpy.ndarray, l_thr: float, sign: str, separation: bool = False) -> tuple[numpy.ndarray, numpy.ndarray]:
     """
     Segments an image using a watershed algorithm.
 
@@ -150,8 +161,8 @@ def watershed_routine(img: numpy.ndarray, l_thr: float, min_dist: int, sign: str
     at the distance-transform maximum — guaranteeing every blob above l_thr
     gets a label regardless of its peak intensity.
 
-    When separation=True, multiple seeds per component are allowed, spaced at
-    least min_dist apart (greedy selection on the distance transform), so that
+    When separation=True, multiple seeds per component are allowed, spaced
+    adaptively based on the component's own distance transform, so that
     touching features can be split without losing weaker blobs.
 
     Parameters
@@ -160,8 +171,6 @@ def watershed_routine(img: numpy.ndarray, l_thr: float, min_dist: int, sign: str
         Input 2D image.
     l_thr : float
         Lower intensity threshold; pixels below this are treated as background.
-    min_dist : int
-        Minimum distance between seeds (only enforced when separation=True).
     sign : {"pos", "neg"}
         Whether to detect positive or negative features.
     separation : bool
@@ -199,15 +208,23 @@ def watershed_routine(img: numpy.ndarray, l_thr: float, min_dist: int, sign: str
         coords = numpy.array(coords)
 
     else:
-        # Multiple seeds per component, greedily spaced by min_dist.
-        # This allows touching blobs to be separated while still guaranteeing
-        # every component gets at least one seed.
+        # Multiple seeds per component, greedily spaced by an adaptive
+        # threshold derived from each component's own distance transform.
+        # The spacing equals the peak EDT value (≈ blob radius), ensuring
+        # single blobs get one seed while touching blobs get multiple seeds.
         coords = []
         for comp in all_components:
             comp_mask = low_labels == comp
             comp_points = numpy.argwhere(comp_mask)
             vals = distance[comp_points[:, 0], comp_points[:, 1]]
             order = numpy.argsort(-vals)  # descending by distance value
+
+            # Adaptive spacing: 1.2× the peak EDT of this component, floored
+            # at 3 px.  The 1.2 factor prevents edge pixels in elongated
+            # regions from spawning spurious seeds while still splitting
+            # truly merged blobs (whose centres are typically ≥2× peak EDT
+            # apart).
+            adaptive_spacing = max(3.0, 1.2 * float(numpy.max(vals)))
 
             seeds = []
             for idx in order:
@@ -217,7 +234,7 @@ def watershed_routine(img: numpy.ndarray, l_thr: float, min_dist: int, sign: str
                     seeds.append(pt)
                 else:
                     dists = numpy.sqrt(numpy.sum((numpy.array(seeds) - pt) ** 2, axis=1))
-                    if numpy.all(dists >= min_dist):
+                    if numpy.all(dists > adaptive_spacing):
                         seeds.append(pt)
             coords.extend(seeds)
 
@@ -242,7 +259,7 @@ def watershed_routine(img: numpy.ndarray, l_thr: float, min_dist: int, sign: str
 ###################################
 
 
-def detection(img: numpy.ndarray, l_thr: float, min_distance: int, sign: str = "both", separation: bool = False, verbose: bool = False) -> numpy.ndarray:
+def detection(img: numpy.ndarray, l_thr: float, sign: str = "both", separation: bool = False, verbose: bool = False) -> numpy.ndarray:
     """
     Detects features in an image using a threshold and watershed algorithm.
 
@@ -252,8 +269,6 @@ def detection(img: numpy.ndarray, l_thr: float, min_distance: int, sign: str = "
         Input image.
     l_thr : float
         Intensity threshold for detection. Pixels below this are ignored.
-    min_distance : int
-        Minimum distance between seeds (used only when separation=True).
     sign : {"both", "pos", "neg"}
         Whether to detect positive, negative, or both types of features.
     separation : bool
@@ -268,18 +283,18 @@ def detection(img: numpy.ndarray, l_thr: float, min_distance: int, sign: str = "
     """
     img = numpy.array(img)
     if sign == "both":
-        labels_pos, _ = watershed_routine(img, l_thr, min_distance, "pos", separation)
-        labels_neg, _ = watershed_routine(img, l_thr, min_distance, "neg", separation)
+        labels_pos, _ = watershed_routine(img, l_thr, "pos", separation)
+        labels_neg, _ = watershed_routine(img, l_thr, "neg", separation)
         labels_neg = -1 * labels_neg
         labels = labels_pos + labels_neg
         if verbose:
             print(f"Number of clumps detected: {len(numpy.unique(labels)) - 1}")
         return labels
     elif sign == "pos":
-        labels_pos, _ = watershed_routine(img, l_thr, min_distance, "pos", separation)
+        labels_pos, _ = watershed_routine(img, l_thr, "pos", separation)
         return labels_pos
     elif sign == "neg":
-        labels_neg, _ = watershed_routine(img, l_thr, min_distance, "neg", separation)
+        labels_neg, _ = watershed_routine(img, l_thr, "neg", separation)
         return labels_neg
     else:
         raise ValueError('sign must be "both", "pos" or "neg"')
@@ -303,28 +318,30 @@ def identification(labels: numpy.ndarray, min_size: int, verbose: bool = False) 
     labels : ndarray
         Filtered label array.
     """
-    count = 0
-    uid = numpy.unique(labels)
-    original_number = len(uid)
+    labels = numpy.asarray(labels)
+    uid, counts = numpy.unique(labels, return_counts=True)
+    has_bg = 0 in uid
+    original_non_bg = len(uid) - (1 if has_bg else 0)
     if verbose:
-        print(f"Number of clumps detected: {original_number - 1}")
+        print(f"Number of clumps detected: {original_non_bg}")
 
-    for k in tqdm.tqdm(uid, leave=False):
-        sz = numpy.where(labels == k)
-        if len(sz[0]) < min_size:
-            labels = numpy.where(labels == k, 0, labels)
-            count += 1
+    # Labels with size < min_size (excluding background)
+    too_small = uid[(uid != 0) & (counts < min_size)]
 
-    num = original_number - count
-    if num == 0:
+    if len(too_small) > 0:
+        labels = labels.copy()
+        labels[numpy.isin(labels, too_small)] = 0
+
+    num_surviving = original_non_bg - len(too_small)
+    if num_surviving <= 0:
         raise ValueError("No clumps survived the identification process")
     if verbose:
-        print(f"Number of clumps surviving the identification process: {num}")
+        print(f"Number of clumps surviving the identification process: {num_surviving}")
 
     return labels
 
 
-def process_image(datapath: str, data: str, l_thr: float, min_distance: int, sign: str = "both", separation: bool = True, min_size: int = 4, verbose: bool = False) -> None:
+def process_image(datapath: str, data: str, l_thr: float, sign: str = "both", separation: bool = True, min_size: int = 4, verbose: bool = False) -> None:
     """
     Processes a single FITS image: detects clumps, filters by size, and saves results.
 
@@ -336,8 +353,6 @@ def process_image(datapath: str, data: str, l_thr: float, min_distance: int, sig
         Path to the input FITS file.
     l_thr : float
         Intensity threshold for detection.
-    min_distance : int
-        Minimum seed spacing (separation=True only).
     sign : {"both", "pos", "neg"}
         Polarity of features to detect.
     separation : bool
@@ -348,7 +363,7 @@ def process_image(datapath: str, data: str, l_thr: float, min_distance: int, sig
         Verbose output.
     """
     image = astropy.io.fits.getdata(data, memmap=False)
-    labels = detection(image, l_thr, min_distance, sign=sign, separation=separation, verbose=verbose)
+    labels = detection(image, l_thr, sign=sign, separation=separation, verbose=verbose)
     astropy.io.fits.writeto(datapath + f"01-mask/{data.split(os.sep)[-1]}", labels, overwrite=True)
     labels = identification(labels, min_size, verbose=verbose)
     astropy.io.fits.writeto(datapath + f"02-id/{data.split(os.sep)[-1]}", labels, overwrite=True)
@@ -365,13 +380,23 @@ def unique_id(id_data: str, datapath: str, verbose: bool = False) -> None:
         ids = numpy.unique(img_n0[img_n0 != 0])
         ids_p = ids[ids > 0]
         ids_n = ids[ids < 0]
+
+        # Build full remapping first to avoid overwrite collisions
+        # (a new ID could equal a not-yet-processed original ID)
+        remap = {}
         for i in ids_p:
-            img_n0[img_n0 == i] = u_id_p
+            remap[int(i)] = u_id_p
             u_id_p += 1
         for i in ids_n:
-            img_n0[img_n0 == i] = u_id_n
+            remap[int(i)] = u_id_n
             u_id_n -= 1
-        astropy.io.fits.writeto(os.path.join(datapath, "02-id", os.path.basename(filename)), img_n0, overwrite=True)
+
+        # Apply remapping in one pass: read from original, write to copy
+        img_out = img_n0.copy()
+        for old_id, new_id in remap.items():
+            img_out[img_n0 == old_id] = new_id
+
+        astropy.io.fits.writeto(os.path.join(datapath, "02-id", os.path.basename(filename)), img_out, overwrite=True)
     if verbose:
         print(f"Total number of unique IDs: {u_id_p + abs(u_id_n) - 1}")
 
@@ -379,10 +404,11 @@ def unique_id(id_data: str, datapath: str, verbose: bool = False) -> None:
 def array_row_intersection(a: numpy.ndarray, b: numpy.ndarray) -> numpy.ndarray:
     """
     Returns rows of `a` that also appear in `b`.
-    Adapted from https://stackoverflow.com/a/40600991 (Vasilis Lemonidis).
+    Uses set-based lookup for O(|a| + |b|) performance.
     """
-    tmp = numpy.prod(numpy.swapaxes(a[:, :, None], 1, 2) == b, axis=2)
-    return a[numpy.sum(numpy.cumsum(tmp, axis=0) * tmp == 1, axis=1).astype(bool)]
+    b_set = set(map(tuple, b))
+    mask = numpy.array([tuple(row) in b_set for row in a])
+    return a[mask]
 
 
 def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datapath: str, verbose: bool = False) -> None:
@@ -398,8 +424,8 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
 
     unique_id_1 = numpy.unique(file1)
     unique_id_1 = unique_id_1[unique_id_1 != 0]
-    forward_matches_1 = numpy.empty(0)
-    forward_matches_2 = numpy.empty(0)
+    forward_matches_1 = []
+    forward_matches_2 = []
     for id_1 in tqdm.tqdm(unique_id_1, leave=False, desc="Forward matching"):
         try:
             wh1 = numpy.where(file1 == id_1)
@@ -420,13 +446,13 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
                 best_match_1 = id_1
                 best_match_2 = id_2
         if max_intersection_size != 0:
-            forward_matches_1 = numpy.append(forward_matches_1, best_match_1)
-            forward_matches_2 = numpy.append(forward_matches_2, best_match_2)
+            forward_matches_1.append(best_match_1)
+            forward_matches_2.append(best_match_2)
 
     unique_id_2 = numpy.unique(file2)
     unique_id_2 = unique_id_2[unique_id_2 != 0]
-    backward_matches_1 = numpy.empty(0)
-    backward_matches_2 = numpy.empty(0)
+    backward_matches_1 = []
+    backward_matches_2 = []
     for id_2 in tqdm.tqdm(unique_id_2, leave=False, desc="Backward matching"):
         try:
             wh2 = numpy.where(file2 == id_2)
@@ -447,18 +473,28 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
                 best_match_1 = id_1
                 best_match_2 = id_2
         if max_intersection_size != 0:
-            backward_matches_1 = numpy.append(backward_matches_1, best_match_1)
-            backward_matches_2 = numpy.append(backward_matches_2, best_match_2)
+            backward_matches_1.append(best_match_1)
+            backward_matches_2.append(best_match_2)
 
-    mutual_matches_1 = numpy.empty(0)
-    mutual_matches_2 = numpy.empty(0)
-    for kk in tqdm.tqdm(range(len(forward_matches_1)), leave=False, desc="Mutual matching"):
-        if forward_matches_1[kk] in backward_matches_1 and forward_matches_2[kk] in backward_matches_2:
-            mutual_matches_1 = numpy.append(mutual_matches_1, forward_matches_1[kk])
-            mutual_matches_2 = numpy.append(mutual_matches_2, forward_matches_2[kk])
+    # Mutual matching: intersect forward and backward as paired tuples
+    # (the original code checked each ID independently, which could
+    # produce false positives when different features shared an ID)
+    forward_pairs = set(zip(forward_matches_1, forward_matches_2))
+    backward_pairs = set(zip(backward_matches_1, backward_matches_2))
+    mutual_pairs = forward_pairs & backward_pairs
 
-    for idx in tqdm.tqdm(range(len(mutual_matches_1)), leave=False, desc="Replacing"):
-        numpy.place(cube2, cube2 == mutual_matches_2[idx], mutual_matches_1[idx])
+    if mutual_pairs:
+        mutual_matches_1 = numpy.array([p[0] for p in mutual_pairs])
+        mutual_matches_2 = numpy.array([p[1] for p in mutual_pairs])
+    else:
+        mutual_matches_1 = numpy.empty(0)
+        mutual_matches_2 = numpy.empty(0)
+
+    # Vectorised ID replacement: read from original, write to copy
+    if len(mutual_matches_1) > 0:
+        cube2_original = cube2.copy()
+        for old_id, new_id in zip(mutual_matches_2, mutual_matches_1):
+            cube2[cube2_original == old_id] = new_id
 
     if len(numpy.shape(cube1)) == 2:
         cube1 = cube1.reshape(1, cube1.shape[0], cube1.shape[1])
@@ -598,8 +634,8 @@ def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: 
     for j in range(len(df_final)):
         x = numpy.array(df_final["X"].iloc[j])
         y = numpy.array(df_final["Y"].iloc[j])
-        vx = numpy.gradient(x) * dx / dt
-        vy = numpy.gradient(y) * dx / dt
+        vx = _central_diff_velocity(x, dx, dt)
+        vy = _central_diff_velocity(y, dx, dt)
         vxtot.append(vx)
         vytot.append(vy)
         stdvxtot.append(numpy.std(vx))
@@ -624,7 +660,7 @@ def tabulation_parallel_doppler(files: str, filesD: str, filesB: str, dx: float,
         asc_img = astropy.io.fits.getdata(files[j], memmap=False)
         alt_img = astropy.io.fits.getdata(filesD[j], memmap=False)
         unique_ids = numpy.unique(asc_img)
-        df_temp = pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame", "ecc"])
+        records = []
         for i in unique_ids:
             if i == 0:
                 continue
@@ -633,15 +669,16 @@ def tabulation_parallel_doppler(files: str, filesD: str, filesB: str, dx: float,
             LosV_s = alt_img * mask
             LosV_s[LosV_s == 0] = numpy.nan
             Area = mask.sum()
+            if Area == 0 or Bm.sum() == 0:
+                continue
             Flux = Bm.sum() / Area
             X = ((mask * x_1) * Bm).sum() / Bm.sum()
             Y = ((mask * y_1) * Bm).sum() / Bm.sum()
             r = numpy.sqrt(Area / numpy.pi)
             circle = ((x_1 - X) ** 2 + (y_1 - Y) ** 2 < r ** 2).astype(int) * mask
-            ecc = circle.sum() / Area
-            temp = pandas.DataFrame([[i, X, Y, Area, Flux, LosV_s, j, ecc]], columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame", "ecc"])
-            df_temp = pandas.concat([df_temp, temp], ignore_index=False)
-        return df_temp
+            ecc = circle.sum() / Area if Area > 0 else numpy.nan
+            records.append({"label": i, "X": X, "Y": Y, "Area": Area, "Flux": Flux, "LOS_V": LosV_s, "frame": j, "ecc": ecc})
+        return pandas.DataFrame.from_records(records) if records else pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame", "ecc"])
 
     with ProcessingPool(cores) as p:
         results = list(p.imap(process_file, range(len(files))))
@@ -688,8 +725,8 @@ def tabulation_parallel_doppler(files: str, filesD: str, filesB: str, dx: float,
     for j in tqdm.tqdm(range(len(df_final)), desc="Computing velocities"):
         x = numpy.array(df_final["X"].iloc[j])
         y = numpy.array(df_final["Y"].iloc[j])
-        vx = numpy.gradient(x) * dx / dt
-        vy = numpy.gradient(y) * dx / dt
+        vx = _central_diff_velocity(x, dx, dt)
+        vy = _central_diff_velocity(y, dx, dt)
         vxtot.append(vx)
         vytot.append(vy)
         stdvxtot.append(numpy.std(vx))
@@ -772,8 +809,8 @@ def tabulation(files: str, filesB: str, dx: float, dt: float, cores: int, minlif
     for j in tqdm.tqdm(range(len(df_final)), desc="Computing velocities"):
         x = numpy.array(df_final["X"].iloc[j])
         y = numpy.array(df_final["Y"].iloc[j])
-        vx = numpy.gradient(x) * dx / dt
-        vy = numpy.gradient(y) * dx / dt
+        vx = _central_diff_velocity(x, dx, dt)
+        vy = _central_diff_velocity(y, dx, dt)
         vxtot.append(vx)
         vytot.append(vy)
         stdvxtot.append(numpy.std(vx))

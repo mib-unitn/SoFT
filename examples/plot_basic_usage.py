@@ -50,9 +50,7 @@ for t in range(n_frames):
 
 # Set tracking parameters
 l_thr = 20  # Low threshold
-h_thr = 50  # High threshold
 min_size = 10
-min_distance = 5
 dx = 1.0
 dt = 1.0
 sign = "both"
@@ -62,7 +60,7 @@ cores = 1
 
 # Run tracking
 print("Running tracking...")
-soft.soft.track_all(data_dir, cores, min_distance, l_thr, h_thr, min_size, dx, dt, sign, separation, verbose)
+soft.soft.track_all(data_dir, cores, l_thr, min_size, dx, dt, sign, separation, verbose)
 
 # Check results
 # Read the resulting dataframe

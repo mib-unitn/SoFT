@@ -147,8 +147,6 @@ def get_ch_mask(
     jsoc_email:  str   = "your_email@example.com",
     num_retries: int   = 1,
     l_thr:       float = 0.985,
-    h_thr:       float = 0.995,
-    min_distance: int  = 300,
     min_size:    int   = 500,
 ) -> np.ndarray | None:
     """
@@ -162,8 +160,6 @@ def get_ch_mask(
                    Register at http://jsoc.stanford.edu/ajax/register_email.html
     num_retries  : How many times to retry on failure, shifting +1 h each time.
     l_thr        : Lower intensity threshold for CH detection (default 0.985).
-    h_thr        : Upper intensity threshold for CH detection (default 0.995).
-    min_distance : Minimum distance between local maxima in pixels (default 300).
     min_size     : Minimum coronal hole size in pixels (default 500).
 
     Returns
@@ -205,8 +201,8 @@ def get_ch_mask(
             del aia_data
             gc.collect()
 
-            chs  = st.detection(aia_inv, l_thr=l_thr, h_thr=h_thr,
-                                 min_distance=min_distance, sign="pos",
+            chs  = st.detection(aia_inv, l_thr=l_thr,
+                                 sign="pos",
                                  separation=False)
             del aia_inv
             gc.collect()
@@ -544,8 +540,6 @@ def build_level2(
     jsoc_email:           str   = "your_email@example.com",
     ch_retries:           int   = 1,
     ch_l_thr:             float = 0.985,
-    ch_h_thr:             float = 0.995,
-    ch_min_distance:      int   = 300,
     ch_min_size:          int   = 500,
 ) -> pd.DataFrame:
     """
@@ -589,8 +583,6 @@ def build_level2(
     jsoc_email           : Registered JSOC email.
     ch_retries           : Retry budget for the JSOC download (default 1).
     ch_l_thr             : Lower threshold for CH detection (default 0.985).
-    ch_h_thr             : Upper threshold for CH detection (default 0.995).
-    ch_min_distance      : Min distance between CH maxima in pixels (default 300).
     ch_min_size          : Min coronal hole size in pixels (default 500).
 
     Examples
@@ -670,7 +662,6 @@ def build_level2(
         print(_header("Coronal hole detection"))
         mask = get_ch_mask(target_time, jsoc_email=jsoc_email,
                            num_retries=ch_retries, l_thr=ch_l_thr,
-                           h_thr=ch_h_thr, min_distance=ch_min_distance,
                            min_size=ch_min_size)
         if mask is not None:
             df_l2 = flag_coronal_hole(df_l2, mask,
