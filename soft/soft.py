@@ -318,20 +318,22 @@ def identification(labels: numpy.ndarray, min_size: int, verbose: bool = False) 
     labels : ndarray
         Filtered label array.
     """
-    count = 0
-    uid = numpy.unique(labels)
-    original_number = len(uid)
+    labels = numpy.asarray(labels)
+    uid, counts = numpy.unique(labels, return_counts=True)
+    has_bg = 0 in uid
+    original_non_bg = len(uid) - (1 if has_bg else 0)
     if verbose:
-        print(f"Number of clumps detected: {original_number - 1}")
+        print(f"Number of clumps detected: {original_non_bg}")
 
-    for k in tqdm.tqdm(uid, leave=False):
-        sz = numpy.where(labels == k)
-        if len(sz[0]) < min_size:
-            labels = numpy.where(labels == k, 0, labels)
-            count += 1
+    # Labels with size < min_size (excluding background)
+    too_small = uid[(uid != 0) & (counts < min_size)]
 
-    num = original_number - count
-    if num == 0:
+    if len(too_small) > 0:
+        labels = labels.copy()
+        labels[numpy.isin(labels, too_small)] = 0
+
+    num_surviving = original_non_bg - len(too_small)
+    if num_surviving <= 0:
         raise ValueError("No clumps survived the identification process")
     if verbose:
         print(f"Number of clumps surviving the identification process: {num_surviving}")
