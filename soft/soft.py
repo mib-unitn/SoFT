@@ -370,6 +370,9 @@ def process_image(datapath: str, data: str, l_thr: float, sign: str = "both", se
 def unique_id(id_data: str, datapath: str, verbose: bool = False) -> None:
     """
     Assigns globally unique IDs to clumps across all frames.
+
+    Performance: uses a single vectorised lookup-table remap (O(pixels + N))
+    instead of N per-label full-image scans (O(N × pixels)).
     """
     u_id_p = 1
     u_id_n = -1
@@ -379,20 +382,27 @@ def unique_id(id_data: str, datapath: str, verbose: bool = False) -> None:
         ids_p = ids[ids > 0]
         ids_n = ids[ids < 0]
 
-        # Build full remapping first to avoid overwrite collisions
-        # (a new ID could equal a not-yet-processed original ID)
-        remap = {}
-        for i in ids_p:
-            remap[int(i)] = u_id_p
-            u_id_p += 1
-        for i in ids_n:
-            remap[int(i)] = u_id_n
-            u_id_n -= 1
+        # Build global remap counters first (no in-place risk)
+        new_ids_p = numpy.arange(u_id_p, u_id_p + len(ids_p), dtype=img_n0.dtype)
+        new_ids_n = numpy.arange(u_id_n, u_id_n - len(ids_n), -1, dtype=img_n0.dtype)
+        u_id_p += len(ids_p)
+        u_id_n -= len(ids_n)
 
-        # Apply remapping in one pass: read from original, write to copy
-        img_out = img_n0.copy()
-        for old_id, new_id in remap.items():
-            img_out[img_n0 == old_id] = new_id
+        # Build a flat lookup table indexed by the original pixel value.
+        # We shift all values by |min_id| so indices are non-negative.
+        min_id = int(img_n0.min())          # may be 0 or negative
+        offset = -min_id                    # shift to make all values >= 0
+        lut_size = int(img_n0.max()) - min_id + 1
+        lut = numpy.zeros(lut_size, dtype=img_n0.dtype)
+
+        # Background (0) maps to 0; positive and negative ids get new values
+        for old, new in zip(ids_p.astype(int), new_ids_p):
+            lut[old + offset] = new
+        for old, new in zip(ids_n.astype(int), new_ids_n):
+            lut[old + offset] = new
+
+        # Single vectorised remap: one pass over the whole image
+        img_out = lut[img_n0.astype(int) + offset]
 
         astropy.io.fits.writeto(os.path.join(datapath, "02-id", os.path.basename(filename)), img_out, overwrite=True)
     if verbose:
@@ -549,9 +559,23 @@ def associate(datapath: str, verbose: bool = False, number_of_workers: int = Non
         print(color.RED + color.BOLD + "No associated files found." + color.END)
         return
 
-    data = astropy.io.fits.getdata(final_files[0], memmap=False)
-    for i in range(data.shape[0]):
-        astropy.io.fits.writeto(datapath + f"03-assoc/{i:04d}.fits", data[i, :, :], overwrite=True)
+    # Collect all cubes from the final temp directory and write them
+    # frame-by-frame into 03-assoc/ with a global, monotonically
+    # increasing frame index.  The original code only read final_files[0],
+    # silently dropping every subsequent cube when the bisection did not
+    # reduce to a single file.
+    frame_idx = 0
+    for fpath in final_files:
+        data = astropy.io.fits.getdata(fpath, memmap=False)
+        if data.ndim == 2:
+            data = data[numpy.newaxis, :, :]
+        for i in range(data.shape[0]):
+            astropy.io.fits.writeto(
+                datapath + f"03-assoc/{frame_idx:04d}.fits",
+                data[i, :, :],
+                overwrite=True,
+            )
+            frame_idx += 1
     print(color.GREEN + color.BOLD + "Finished association" + color.END)
 
 
@@ -604,12 +628,20 @@ def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: 
         frame_temp = group["frame"].values
         ecc_temp = group["ecc"].values
 
-        if not (len(area_temp) == len(flux_temp) == len(X_temp) == len(Y_temp) == len(label_temp) == len(frame_temp)):
-            raise ValueError(f"Inconsistent lengths in group {name}")
+        # Sort by frame to ensure chronological order before checking
+        sort_idx = numpy.argsort(frame_temp)
+        area_temp  = area_temp[sort_idx]
+        flux_temp  = flux_temp[sort_idx]
+        X_temp     = X_temp[sort_idx]
+        Y_temp     = Y_temp[sort_idx]
+        label_temp = label_temp[sort_idx]
+        frame_temp = frame_temp[sort_idx]
+        ecc_temp   = ecc_temp[sort_idx]
+
         if len(numpy.unique(label_temp)) > 1:
             raise ValueError(f"More than one label in group {name}")
-        if numpy.any(numpy.diff(frame_temp) != 1):
-            raise ValueError(f"Frames are not consecutive for label {name}")
+        # Non-consecutive frames are valid (feature absent in an intermediate
+        # frame due to low flux); we no longer raise here.
 
         area_tot.append(area_temp)
         flux_tot.append(flux_temp)
@@ -696,10 +728,21 @@ def tabulation_parallel_doppler(files: str, filesD: str, filesB: str, dx: float,
         frame_temp = group["frame"].values
         ecc_temp = group["ecc"].values
 
+        # Sort by frame to ensure chronological order
+        sort_idx = numpy.argsort(frame_temp)
+        area_temp  = area_temp[sort_idx]
+        flux_temp  = flux_temp[sort_idx]
+        losv_temp  = losv_temp[sort_idx]
+        X_temp     = X_temp[sort_idx]
+        Y_temp     = Y_temp[sort_idx]
+        label_temp = label_temp[sort_idx]
+        frame_temp = frame_temp[sort_idx]
+        ecc_temp   = ecc_temp[sort_idx]
+
         if len(numpy.unique(label_temp)) > 1:
             raise ValueError("More than one label in the group")
-        if numpy.any(numpy.diff(frame_temp) != 1):
-            raise ValueError("Frames are not consecutive")
+        # Non-consecutive frames are valid; no longer raise here.
+
 
         area_tot.append(area_temp)
         flux_tot.append(flux_temp)
