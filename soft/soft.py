@@ -163,9 +163,9 @@ def track_all(datapath: str, cores: int, l_thr: float, min_size: int, dx: float,
                 doppler_files = sorted(glob.glob(os.path.join(datapath + "00b-doppler/*.fits")))
                 if len(doppler_files) == 0:
                     raise FileNotFoundError("No Doppler files found")
-                df = tabulation_parallel_doppler(asc_files, doppler_files, src_files, dx, dt, cores, mb=mb)
+                df = tabulation_parallel_doppler(asc_files, doppler_files, src_files, dx, dt, cores, l_thr, mb=mb)
             else:
-                df = tabulation_parallel(asc_files, src_files, dx, dt, cores, mb=mb)
+                df = tabulation_parallel(asc_files, src_files, dx, dt, cores, l_thr, mb=mb)
 
             df.to_json(os.path.join(datapath + "dataframe.json"))
             end = time.time()
@@ -673,7 +673,7 @@ def _tabulate_frame(args: tuple) -> pandas.DataFrame:
     Receives a tuple (j, asc_path, src_path) so no closure variables are captured.
     x_1/y_1 grids are reconstructed from the image shape inside the worker.
     """
-    j, asc_path, src_path = args
+    j, asc_path, src_path, l_thr = args
     src_img = astropy.io.fits.getdata(src_path, memmap=False).astype(numpy.float64)
     asc_img = astropy.io.fits.getdata(asc_path, memmap=False)
 
@@ -691,7 +691,7 @@ def _tabulate_frame(args: tuple) -> pandas.DataFrame:
     # negative-polarity features are treated identically.  Keep the signed
     # signal separately for the reported mean flux density.
     src_clean = numpy.nan_to_num(src_img, nan=0.0, posinf=0.0, neginf=0.0)
-    centroid_weights = numpy.abs(src_clean)
+    centroid_weights = numpy.maximum(0.0, numpy.abs(src_clean) - l_thr)
 
     area_vals = numpy.asarray(
         scipy.ndimage.sum(numpy.ones_like(src_clean), asc_img, index=index),
@@ -765,7 +765,7 @@ def _tabulate_frame_doppler(args: tuple) -> pandas.DataFrame:
     """
     Module-level worker for tabulation_parallel_doppler — picklable by ProcessPoolExecutor.
     """
-    j, asc_path, src_path, dop_path = args
+    j, asc_path, src_path, dop_path, l_thr = args
     src_img = astropy.io.fits.getdata(src_path, memmap=False).astype(numpy.float64)
     asc_img = astropy.io.fits.getdata(asc_path, memmap=False)
     alt_img = astropy.io.fits.getdata(dop_path, memmap=False).astype(numpy.float64)
@@ -784,7 +784,7 @@ def _tabulate_frame_doppler(args: tuple) -> pandas.DataFrame:
     # negative-polarity features are treated identically.  Keep the signed
     # signal separately for the reported mean flux density.
     src_clean = numpy.nan_to_num(src_img, nan=0.0, posinf=0.0, neginf=0.0)
-    centroid_weights = numpy.abs(src_clean)
+    centroid_weights = numpy.maximum(0.0, numpy.abs(src_clean) - l_thr)
 
     area_vals = numpy.asarray(
         scipy.ndimage.sum(numpy.ones_like(src_clean), asc_img, index=index),
@@ -859,7 +859,7 @@ def _tabulate_frame_doppler(args: tuple) -> pandas.DataFrame:
     return pandas.DataFrame.from_records(records)
 
 
-def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: int, minliftime: int = 4, mb=None) -> pandas.DataFrame:
+def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: int, l_thr: float, minliftime: int = 4, mb=None) -> pandas.DataFrame:
     """
     Process segmentation maps and source FITS files in parallel.
     Extracts blob properties, tracks across frames, and computes velocities.
@@ -867,7 +867,7 @@ def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: 
     Uses scipy.ndimage labelled statistics for O(pixels) per frame instead of
     O(N_features × pixels).
     """
-    args = [(j, files[j], filesB[j]) for j in range(len(files))]
+    args = [(j, files[j], filesB[j], l_thr) for j in range(len(files))]
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=cores) as pool:
         results = list(progress_bar(
@@ -923,12 +923,12 @@ def tabulation_parallel(files: list, filesB: list, dx: float, dt: float, cores: 
     return df_final
 
 
-def tabulation_parallel_doppler(files: str, filesD: str, filesB: str, dx: float, dt: float, cores: int, minliftime: int = 4, mb=None) -> pandas.DataFrame:
+def tabulation_parallel_doppler(files: str, filesD: str, filesB: str, dx: float, dt: float, cores: int, l_thr: float, minliftime: int = 4, mb=None) -> pandas.DataFrame:
     """
     Like tabulation_parallel but also extracts LOS (Doppler) velocity per feature.
     Uses scipy.ndimage labelled statistics for O(pixels) per frame.
     """
-    args = [(j, files[j], filesB[j], filesD[j]) for j in range(len(files))]
+    args = [(j, files[j], filesB[j], filesD[j], l_thr) for j in range(len(files))]
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=cores) as pool:
         results = list(progress_bar(
