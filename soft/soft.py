@@ -687,20 +687,51 @@ def _tabulate_frame(args: tuple) -> pandas.DataFrame:
 
     index = list(labels_present)
 
-    area_vals  = numpy.array(scipy.ndimage.sum(numpy.ones_like(src_img), asc_img, index=index))
-    Bm_sum     = numpy.array(scipy.ndimage.sum(src_img, asc_img, index=index))
-    cx_vals    = numpy.array(scipy.ndimage.sum(src_img * x_1, asc_img, index=index))
-    cy_vals    = numpy.array(scipy.ndimage.sum(src_img * y_1, asc_img, index=index))
+    # Use unsigned magnetic signal as the centroid weight so that positive and
+    # negative-polarity features are treated identically.  Keep the signed
+    # signal separately for the reported mean flux density.
+    src_clean = numpy.nan_to_num(src_img, nan=0.0, posinf=0.0, neginf=0.0)
+    centroid_weights = numpy.abs(src_clean)
 
-    valid = (area_vals > 0) & (Bm_sum > 0)
+    area_vals = numpy.asarray(
+        scipy.ndimage.sum(numpy.ones_like(src_clean), asc_img, index=index),
+        dtype=numpy.float64,
+    )
+    signed_flux_sum = numpy.asarray(
+        scipy.ndimage.sum(src_clean, asc_img, index=index),
+        dtype=numpy.float64,
+    )
+    weight_sum = numpy.asarray(
+        scipy.ndimage.sum(centroid_weights, asc_img, index=index),
+        dtype=numpy.float64,
+    )
+    cx_vals = numpy.asarray(
+        scipy.ndimage.sum(centroid_weights * x_1, asc_img, index=index),
+        dtype=numpy.float64,
+    )
+    cy_vals = numpy.asarray(
+        scipy.ndimage.sum(centroid_weights * y_1, asc_img, index=index),
+        dtype=numpy.float64,
+    )
+
+    valid = (
+        (area_vals > 0)
+        & (weight_sum > 0)
+        & numpy.isfinite(area_vals)
+        & numpy.isfinite(signed_flux_sum)
+        & numpy.isfinite(weight_sum)
+        & numpy.isfinite(cx_vals)
+        & numpy.isfinite(cy_vals)
+    )
     if not numpy.any(valid):
         return pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "frame", "ecc"])
 
-    area_vals  = area_vals[valid]
-    Bm_sum_v   = Bm_sum[valid]
-    X_vals     = cx_vals[valid] / Bm_sum_v
-    Y_vals     = cy_vals[valid] / Bm_sum_v
-    Flux_vals  = Bm_sum_v / area_vals
+    area_vals = area_vals[valid]
+    signed_flux_sum = signed_flux_sum[valid]
+    weight_sum = weight_sum[valid]
+    X_vals = cx_vals[valid] / weight_sum
+    Y_vals = cy_vals[valid] / weight_sum
+    Flux_vals = signed_flux_sum / area_vals
     lbl_valid  = numpy.array(index)[valid]
     r_vals     = numpy.sqrt(area_vals / numpy.pi)
 
@@ -749,20 +780,51 @@ def _tabulate_frame_doppler(args: tuple) -> pandas.DataFrame:
 
     index = list(labels_present)
 
-    area_vals  = numpy.array(scipy.ndimage.sum(numpy.ones_like(src_img), asc_img, index=index))
-    Bm_sum     = numpy.array(scipy.ndimage.sum(src_img, asc_img, index=index))
-    cx_vals    = numpy.array(scipy.ndimage.sum(src_img * x_1, asc_img, index=index))
-    cy_vals    = numpy.array(scipy.ndimage.sum(src_img * y_1, asc_img, index=index))
+    # Use unsigned magnetic signal as the centroid weight so that positive and
+    # negative-polarity features are treated identically.  Keep the signed
+    # signal separately for the reported mean flux density.
+    src_clean = numpy.nan_to_num(src_img, nan=0.0, posinf=0.0, neginf=0.0)
+    centroid_weights = numpy.abs(src_clean)
 
-    valid = (area_vals > 0) & (Bm_sum > 0)
+    area_vals = numpy.asarray(
+        scipy.ndimage.sum(numpy.ones_like(src_clean), asc_img, index=index),
+        dtype=numpy.float64,
+    )
+    signed_flux_sum = numpy.asarray(
+        scipy.ndimage.sum(src_clean, asc_img, index=index),
+        dtype=numpy.float64,
+    )
+    weight_sum = numpy.asarray(
+        scipy.ndimage.sum(centroid_weights, asc_img, index=index),
+        dtype=numpy.float64,
+    )
+    cx_vals = numpy.asarray(
+        scipy.ndimage.sum(centroid_weights * x_1, asc_img, index=index),
+        dtype=numpy.float64,
+    )
+    cy_vals = numpy.asarray(
+        scipy.ndimage.sum(centroid_weights * y_1, asc_img, index=index),
+        dtype=numpy.float64,
+    )
+
+    valid = (
+        (area_vals > 0)
+        & (weight_sum > 0)
+        & numpy.isfinite(area_vals)
+        & numpy.isfinite(signed_flux_sum)
+        & numpy.isfinite(weight_sum)
+        & numpy.isfinite(cx_vals)
+        & numpy.isfinite(cy_vals)
+    )
     if not numpy.any(valid):
         return pandas.DataFrame(columns=["label", "X", "Y", "Area", "Flux", "LOS_V", "frame", "ecc"])
 
-    area_vals  = area_vals[valid]
-    Bm_sum_v   = Bm_sum[valid]
-    X_vals     = cx_vals[valid] / Bm_sum_v
-    Y_vals     = cy_vals[valid] / Bm_sum_v
-    Flux_vals  = Bm_sum_v / area_vals
+    area_vals = area_vals[valid]
+    signed_flux_sum = signed_flux_sum[valid]
+    weight_sum = weight_sum[valid]
+    X_vals = cx_vals[valid] / weight_sum
+    Y_vals = cy_vals[valid] / weight_sum
+    Flux_vals = signed_flux_sum / area_vals
     lbl_valid  = numpy.array(index)[valid]
     r_vals     = numpy.sqrt(area_vals / numpy.pi)
 
@@ -940,11 +1002,25 @@ def tabulation(files: str, filesB: str, dx: float, dt: float, cores: int, minlif
             if i == 0:
                 continue
             mask = (asc_img == i)
-            Bm = src_img * mask
-            Area = mask.sum()
-            Flux = Bm.sum() / Area
-            X = ((mask * x_1) * Bm).sum() / Bm.sum()
-            Y = ((mask * y_1) * Bm).sum() / Bm.sum()
+            Area = int(mask.sum())
+            if Area == 0:
+                continue
+
+            signal = numpy.nan_to_num(
+                numpy.asarray(src_img[mask], dtype=numpy.float64),
+                nan=0.0,
+                posinf=0.0,
+                neginf=0.0,
+            )
+            weights = numpy.abs(signal)
+            weight_sum = weights.sum()
+            if not numpy.isfinite(weight_sum) or weight_sum <= 0:
+                continue
+
+            # Signed mean flux density, but polarity-independent centroid.
+            Flux = signal.sum() / Area
+            X = numpy.sum(x_1[mask] * weights) / weight_sum
+            Y = numpy.sum(y_1[mask] * weights) / weight_sum
             r = numpy.sqrt(Area / numpy.pi)
             circle = ((x_1 - X) ** 2 + (y_1 - Y) ** 2 < r ** 2).astype(int) * mask
             ecc = circle.sum() / Area
