@@ -14,6 +14,7 @@ from typing import Union
 from pathos.multiprocessing import ProcessingPool
 from fastprogress import master_bar, progress_bar, force_console_behavior
 
+
 def _in_notebook() -> bool:
     """Return True when running inside a Jupyter kernel."""
     try:
@@ -22,8 +23,31 @@ def _in_notebook() -> bool:
     except ImportError:
         return False
 
+
 if not _in_notebook():
-    force_console_behavior()   # clean single-line bars in plain terminals
+    force_console_behavior()
+
+
+_fastprogress_progress_bar = progress_bar
+
+
+def progress_bar(iterable, *args, comment=None, **kwargs):
+    """
+    Compatibility wrapper for fastprogress console and notebook bars.
+
+    ConsoleProgressBar does not accept ``comment`` in its constructor,
+    although the resulting progress-bar object supports a ``comment``
+    attribute. Construct the bar first and assign the comment afterward.
+    """
+    bar = _fastprogress_progress_bar(iterable, *args, **kwargs)
+
+    if comment:
+        try:
+            bar.comment = str(comment)
+        except (AttributeError, TypeError):
+            pass
+
+    return bar
 
 
 class _ColorFormatter:
@@ -607,64 +631,357 @@ def back_and_forth_matching_PARALLEL(fname1: str, fname2: str, round: int, datap
 
 def associate(datapath: str, verbose: bool = False, number_of_workers: int = None) -> None:
     """
-    Performs iterative pairwise association of all frames using parallel processing.
+    Performs RAM-safe iterative pairwise association followed by sequential
+    stitching of the resulting chunks.
+
+    The bisection stage limits the maximum cube size processed in parallel,
+    while the stitching stage allows feature IDs to remain continuous across
+    an arbitrary number of chunks without ID collisions.
+
+    Parameters
+    ----------
+    datapath : str
+        Path to the SoFT working directory.
+    verbose : bool, optional
+        Print additional information.
+    number_of_workers : int, optional
+        Number of workers used during the parallel association stage.
     """
-    id_data = sorted(glob.glob(datapath + "02-id/*.fits"))
-    round = 0
-    os.makedirs(datapath + "temp0", exist_ok=True)
-    subgroups = [id_data[i:i + 2] for i in range(0, len(id_data), 2)]
+
+    # ------------------------------------------------------------------
+    # Input files
+    # ------------------------------------------------------------------
+    id_data = sorted(glob.glob(os.path.join(datapath, "02-id", "*.fits")))
+
+    if not id_data:
+        _cprint(
+            color.RED + color.BOLD +
+            "No ID files found in 02-id/." +
+            color.END
+        )
+        return
+
+    # ------------------------------------------------------------------
+    # RAM-safe pairwise association
+    #
+    # With max_iter = 10:
+    # temp0 -> 2 frames
+    # temp1 -> 4 frames
+    # temp2 -> 8 frames
+    # ...
+    # temp8 -> 512 frames (capped to prevent 1024-frame OOM spikes)
+    # ------------------------------------------------------------------
+    max_iter = 10
+    temp0_dir = os.path.join(datapath, "temp0")
+    os.makedirs(temp0_dir, exist_ok=True)
+
+    # Pair the original individual frames
+    subgroups = [
+        id_data[i:i + 2]
+        for i in range(0, len(id_data), 2)
+    ]
+
+    # Carry forward an odd trailing frame
     if len(subgroups) > 0 and len(subgroups[-1]) == 1:
         img = astropy.io.fits.getdata(subgroups[-1][0], memmap=False)
-        img = img.reshape(1, img.shape[0], img.shape[1])
-        astropy.io.fits.writeto(datapath + f"temp{round}/{subgroups[-1][0].split(os.sep)[-1]}", img, overwrite=True)
+        if img.ndim == 2:
+            img = img.reshape(1, img.shape[0], img.shape[1])
+        astropy.io.fits.writeto(
+            os.path.join(temp0_dir, os.path.basename(subgroups[-1][0])),
+            img,
+            overwrite=True
+        )
         subgroups = subgroups[:-1]
-    _cprint(color.RED + color.BOLD + "Starting the first round of association" + color.END)
-    args = [(subgroup[0], subgroup[1], round, datapath, verbose) for subgroup in subgroups]
-    with concurrent.futures.ProcessPoolExecutor(max_workers=number_of_workers) as pool:
-        list(pool.map(_run_matching, args))
 
-    max_iter = 10
-    for round in range(1, max_iter):
-        data = sorted(glob.glob(datapath + f"temp{round - 1}/*.fits"))
-        os.makedirs(datapath + f"temp{round}", exist_ok=True)
-        if len(data) < 2:
-            break
-        subgroups = [data[i:i + 2] for i in range(0, len(data), 2)]
-        if len(subgroups) > 0 and len(subgroups[-1]) == 1:
-            img = astropy.io.fits.getdata(subgroups[-1][0], memmap=False)
-            img = img.reshape(img.shape[0], img.shape[1], img.shape[2])
-            astropy.io.fits.writeto(datapath + f"temp{round}/{subgroups[-1][0].split(os.sep)[-1]}", img, overwrite=True)
-            subgroups = subgroups[:-1]
-        _cprint(color.RED + color.BOLD + f"Starting the {round + 1} round of association" + color.END)
-        args = [(subgroup[0], subgroup[1], round, datapath, verbose) for subgroup in subgroups]
+    _cprint(
+        color.RED + color.BOLD +
+        "Starting the first round of association" +
+        color.END
+    )
+
+    args = [
+        (subgroup[0], subgroup[1], 0, datapath, verbose)
+        for subgroup in subgroups
+    ]
+
+    if args:
         with concurrent.futures.ProcessPoolExecutor(max_workers=number_of_workers) as pool:
             list(pool.map(_run_matching, args))
 
+    # ------------------------------------------------------------------
+    # Subsequent bisection rounds
+    # ------------------------------------------------------------------
+    for round_idx in range(1, max_iter - 1):
+        previous_dir = os.path.join(datapath, f"temp{round_idx - 1}")
+        current_dir = os.path.join(datapath, f"temp{round_idx}")
 
-    final_files = sorted(glob.glob(datapath + f"temp{round - 1}/*.fits"))
+        data = sorted(glob.glob(os.path.join(previous_dir, "*.fits")))
+
+        # If data collapsed to a single cube before capping, stop
+        if len(data) < 2:
+            break
+
+        os.makedirs(current_dir, exist_ok=True)
+
+        subgroups = [
+            data[i:i + 2]
+            for i in range(0, len(data), 2)
+        ]
+
+        # Carry odd cube forward unchanged
+        if len(subgroups) > 0 and len(subgroups[-1]) == 1:
+            img = astropy.io.fits.getdata(subgroups[-1][0], memmap=False)
+            if img.ndim == 2:
+                img = img.reshape(1, img.shape[0], img.shape[1])
+            astropy.io.fits.writeto(
+                os.path.join(current_dir, os.path.basename(subgroups[-1][0])),
+                img,
+                overwrite=True
+            )
+            subgroups = subgroups[:-1]
+
+        _cprint(
+            color.RED + color.BOLD +
+            f"Starting the {round_idx + 1} round of association" +
+            color.END
+        )
+
+        args = [
+            (subgroup[0], subgroup[1], round_idx, datapath, verbose)
+            for subgroup in subgroups
+        ]
+
+        if args:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=number_of_workers) as pool:
+                list(pool.map(_run_matching, args))
+
+    # ------------------------------------------------------------------
+    # Resolve the final non-empty temp directory
+    # ------------------------------------------------------------------
+    final_files = []
+    for r in range(max_iter - 2, -1, -1):
+        tdir = os.path.join(datapath, f"temp{r}")
+        if os.path.isdir(tdir):
+            f_list = sorted(glob.glob(os.path.join(tdir, "*.fits")))
+            if f_list:
+                final_files = f_list
+                break
+
     if not final_files:
-        _cprint(color.RED + color.BOLD + "No associated files found." + color.END)
+        _cprint(
+            color.RED + color.BOLD +
+            "No associated files found." +
+            color.END
+        )
         return
 
-    # Collect all cubes from the final temp directory and write them
-    # frame-by-frame into 03-assoc/ with a global, monotonically
-    # increasing frame index.  The original code only read final_files[0],
-    # silently dropping every subsequent cube when the bisection did not
-    # reduce to a single file.
+    _cprint(
+        color.CYAN + color.BOLD +
+        f"RAM-safe association produced {len(final_files)} chunk(s)." +
+        color.END
+    )
+
+    # ------------------------------------------------------------------
+    # Prepare final output directory
+    # ------------------------------------------------------------------
+    assoc_dir = os.path.join(datapath, "03-assoc")
+    os.makedirs(assoc_dir, exist_ok=True)
+
+    # Clear stale frames from previous runs
+    for old_file in glob.glob(os.path.join(assoc_dir, "*.fits")):
+        try:
+            os.remove(old_file)
+        except OSError:
+            pass
+
+    # ------------------------------------------------------------------
+    # Helper: read boundary frame via memmap
+    # ------------------------------------------------------------------
+    def _read_boundary_frame(filename: str, first: bool = False) -> numpy.ndarray:
+        with astropy.io.fits.open(filename, memmap=True) as hdul:
+            data = hdul[0].data
+            if data.ndim == 2:
+                return numpy.array(data, copy=True)
+            idx = 0 if first else -1
+            return numpy.array(data[idx], copy=True)
+
+    # ------------------------------------------------------------------
+    # Helper: mutual boundary matching
+    # ------------------------------------------------------------------
+    def _boundary_mapping(previous_frame: numpy.ndarray, current_frame: numpy.ndarray) -> dict:
+        ids1 = numpy.unique(previous_frame)
+        ids1 = ids1[ids1 != 0]
+
+        ids2 = numpy.unique(current_frame)
+        ids2 = ids2[ids2 != 0]
+
+        if ids1.size == 0 or ids2.size == 0:
+            return {}
+
+        flat1 = previous_frame.ravel().astype(numpy.int64)
+        flat2 = current_frame.ravel().astype(numpy.int64)
+
+        both = (flat1 != 0) & (flat2 != 0)
+        f1 = flat1[both]
+        f2 = flat2[both]
+
+        if f1.size == 0:
+            return {}
+
+        min1, min2 = int(f1.min()), int(f2.min())
+        off1, off2 = -min1, -min2
+        range2 = int(f2.max()) - min2 + 1
+
+        encoded = (f1 + off1) * range2 + (f2 + off2)
+        pairs, counts = numpy.unique(encoded, return_counts=True)
+
+        p1 = (pairs // range2).astype(numpy.int64) - off1
+        p2 = (pairs % range2).astype(numpy.int64) - off2
+
+        # Forward match: previous -> current
+        forward_pairs = set()
+        for id1 in ids1:
+            mask = (p1 == id1)
+            if not mask.any():
+                continue
+            best_idx = numpy.argmax(counts[mask])
+            forward_pairs.add((int(id1), int(p2[mask][best_idx])))
+
+        # Backward match: current -> previous
+        backward_pairs = set()
+        for id2 in ids2:
+            mask = (p2 == id2)
+            if not mask.any():
+                continue
+            best_idx = numpy.argmax(counts[mask])
+            backward_pairs.add((int(p1[mask][best_idx]), int(id2)))
+
+        mutual_pairs = forward_pairs & backward_pairs
+        return {curr_id: prev_id for prev_id, curr_id in mutual_pairs}
+
+    # ------------------------------------------------------------------
+    # Write first chunk and initialize global ID counters
+    # ------------------------------------------------------------------
+    first_cube = astropy.io.fits.getdata(final_files[0], memmap=False)
+    if first_cube.ndim == 2:
+        first_cube = first_cube[numpy.newaxis, :, :]
+
     frame_idx = 0
-    for fpath in final_files:
-        data = astropy.io.fits.getdata(fpath, memmap=False)
-        if data.ndim == 2:
-            data = data[numpy.newaxis, :, :]
-        for i in range(data.shape[0]):
+    for i in range(first_cube.shape[0]):
+        astropy.io.fits.writeto(
+            os.path.join(assoc_dir, f"{frame_idx:04d}.fits"),
+            first_cube[i],
+            overwrite=True
+        )
+        frame_idx += 1
+
+    first_uids = numpy.unique(first_cube)
+    first_pos = first_uids[first_uids > 0]
+    first_neg = first_uids[first_uids < 0]
+
+    max_global_id_p = int(first_pos.max()) if first_pos.size > 0 else 0
+    min_global_id_n = int(first_neg.min()) if first_neg.size > 0 else 0
+    del first_cube
+
+    # ------------------------------------------------------------------
+    # Stitch subsequent chunks
+    # ------------------------------------------------------------------
+    for chunk_idx in range(1, len(final_files)):
+        previous_frame_file = os.path.join(assoc_dir, f"{frame_idx - 1:04d}.fits")
+        current_file = final_files[chunk_idx]
+
+        _cprint(
+            color.YELLOW +
+            f"Stitching chunk {chunk_idx + 1}/{len(final_files)}" +
+            color.END
+        )
+
+        previous_frame = _read_boundary_frame(previous_frame_file, first=False)
+        current_first_frame = _read_boundary_frame(current_file, first=True)
+
+        mapping = _boundary_mapping(previous_frame, current_first_frame)
+
+        del previous_frame
+        del current_first_frame
+
+        if verbose:
+            _cprint(
+                color.CYAN +
+                f"  Boundary matches: {len(mapping)}" +
+                color.END
+            )
+
+        # Load ONLY the active 3D chunk
+        current_cube = astropy.io.fits.getdata(current_file, memmap=False)
+        if current_cube.ndim == 2:
+            current_cube = current_cube[numpy.newaxis, :, :]
+
+        # --------------------------------------------------------------
+        # Remap IDs to guarantee:
+        # 1. Matched IDs assume their previous global ID.
+        # 2. Unmatched IDs shift beyond global bounds to prevent collisions.
+        # --------------------------------------------------------------
+        curr_uids = numpy.unique(current_cube)
+        curr_pos = curr_uids[curr_uids > 0]
+        curr_neg = curr_uids[curr_uids < 0]
+
+        if curr_pos.size > 0 or curr_neg.size > 0:
+            min_c = int(curr_uids.min())
+            max_c = int(curr_uids.max())
+            offset = -min_c
+            lut_size = max_c - min_c + 1
+
+            # Identity table
+            lut = numpy.arange(min_c, min_c + lut_size, dtype=numpy.int64)
+
+            # Shift unmatched positive IDs
+            pos_shift = max_global_id_p
+            for uid in curr_pos:
+                uid_int = int(uid)
+                if uid_int not in mapping:
+                    lut[uid_int + offset] = uid_int + pos_shift
+
+            # Shift unmatched negative IDs
+            neg_shift = min_global_id_n
+            for uid in curr_neg:
+                uid_int = int(uid)
+                if uid_int not in mapping:
+                    lut[uid_int + offset] = uid_int + neg_shift
+
+            # Remap boundary-matched IDs
+            for curr_id, prev_id in mapping.items():
+                lut[int(curr_id) + offset] = int(prev_id)
+
+            # Apply vectorised lookup table
+            current_cube = lut[current_cube.astype(numpy.int64) + offset].astype(current_cube.dtype)
+            del lut
+
+            # Update highest observed IDs across the dataset
+            new_uids = numpy.unique(current_cube)
+            new_pos = new_uids[new_uids > 0]
+            new_neg = new_uids[new_uids < 0]
+
+            if new_pos.size > 0:
+                max_global_id_p = max(max_global_id_p, int(new_pos.max()))
+            if new_neg.size > 0:
+                min_global_id_n = min(min_global_id_n, int(new_neg.min()))
+
+        # Write stitched frames sequentially
+        for i in range(current_cube.shape[0]):
             astropy.io.fits.writeto(
-                datapath + f"03-assoc/{frame_idx:04d}.fits",
-                data[i, :, :],
-                overwrite=True,
+                os.path.join(assoc_dir, f"{frame_idx:04d}.fits"),
+                current_cube[i],
+                overwrite=True
             )
             frame_idx += 1
-    _cprint(color.GREEN + color.BOLD + "Finished association" + color.END)
 
+        del current_cube
+
+    _cprint(
+        color.GREEN + color.BOLD +
+        f"Finished association: {frame_idx} frames written to 03-assoc/" +
+        color.END
+    )
 
 def _tabulate_frame(args: tuple) -> pandas.DataFrame:
     """
